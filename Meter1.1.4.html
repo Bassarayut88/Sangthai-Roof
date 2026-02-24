@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณเมทัลชีท (แสงไทยเมทัลชีท)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #E30613;
+            --primary-dark: #b0050f;
+            --secondary-color: #2c3e50;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-radius: 16px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --panel-bg-gray: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            line-height: 1.5;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 800px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+        .header-content .subtitle { font-size: 0.85rem; opacity: 0.9; font-weight: 300; }
+
+        .btn-print-top {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Sarabun', sans-serif;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-print-top:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            flex-grow: 1;
+        }
+
+        .panel {
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .input-panel { 
+            background-color: #fff; 
+            border-right: 1px solid #eee; 
+            z-index: 2;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+        .center-panel { 
+            background-color: var(--panel-bg-gray); 
+            display: flex; 
+            flex-direction: column; 
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #555; }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Sarabun', sans-serif;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background-color: #fafafa;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.1);
+        }
+
+        .custom-width-box {
+            display: none;
+            margin-top: 10px;
+            background: #fff8e1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed #ffc107;
+            font-size: 0.9rem;
+        }
+
+        .model-info { font-size: 0.8rem; color: var(--primary-color); margin-top: 5px; font-weight: 600; }
+
+        .btn-calc {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(227, 6, 19, 0.3);
+            transition: transform 0.2s;
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-calc:hover { transform: translateY(-1px); }
+
+        /* Type Selector */
+        .type-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .type-option {
+            flex: 1 1 45%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            background: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .type-option.active {
+            background: #fff5f5;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.1);
+        }
+        .type-option input { display: none; }
+        
+        /* Curve Options */
+        .curve-mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: #eef2f6;
+            padding: 5px;
+            border-radius: 8px;
+        }
+        
+        .curve-mode-btn {
+            flex: 1;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            color: #666;
+        }
+        
+        .curve-mode-btn.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Canvas Style */
+        .canvas-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 350px;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            text-align: center;
+            border-top: 4px solid var(--secondary-color);
+        }
+
+        .result-card.highlight { border-top-color: var(--primary-color); background: #fffdfd; }
+        .card-label { font-size: 0.85rem; color: #666; display: block; margin-bottom: 5px; }
+        .card-value { font-size: 1.4rem; font-weight: 700; color: var(--secondary-color); }
+        .card-value.primary { color: var(--primary-color); }
+
+        .price-summary {
+            background: var(--secondary-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .accessory-list {
+            font-size: 0.95rem;
+            color: #555;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px dashed #ddd;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #374151;
+            display: none; /* Hidden by default */
+        }
+        .formula-box h4 {
+            margin: 0 0 10px 0;
+            color: var(--secondary-color);
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 5px;
+        }
+        .formula-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        .formula-val { font-family: monospace; font-weight: bold; color: var(--primary-dark); }
+
+        /* Triangle/Trapezoid Sheet List */
+        .cutting-list-container {
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none; /* Hidden by default */
+        }
+        .cutting-list-header {
+            background-color: #fff8e1;
+            padding: 10px 15px;
+            font-weight: bold;
+            color: #d84315;
+            border-bottom: 1px solid #ffe0b2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cutting-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .cutting-table th {
+            background: #fafafa;
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            color: #666;
+        }
+        .cutting-table td {
+            padding: 8px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        .cutting-table tr:last-child td { border-bottom: none; }
+        .cutting-table tr:nth-child(even) { background-color: #fcfcfc; }
+
+        .warning-msg {
+            background-color: #fff3e0;
+            color: #e65100;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+            border-left: 5px solid #ff9800;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        /* Polygon Point List */
+        .point-list {
+            margin-top: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        .point-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+        .point-item:last-child { border-bottom: none; }
+        .btn-small {
+            background: #e0e0e0;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-small:hover { background: #d0d0d0; }
+        .btn-add {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Print Specific Elements */
+        #print-header, #print-inputs { display: none; }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .print-table td {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+        }
+        .print-table td strong { color: #555; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; margin: 0; max-width: 100%; border-radius: 0; min-height: auto; }
+            .header, .btn-print-top, .input-panel { display: none; }
+            .main-content { display: block; grid-template-columns: 1fr; }
+            .center-panel { border: none; background: white; padding: 0; overflow: visible; max-height: none; }
+            #print-header { display: block; }
+            #print-inputs { display: block; }
+            .canvas-wrapper { border: none; box-shadow: none; margin-bottom: 10px; min-height: 250px; }
+            canvas { background-color: white !important; }
+            .cutting-list-container, .formula-box { display: block !important; break-inside: avoid; }
+        }
+
+        @media (max-width: 900px) {
+            body { padding: 10px; overflow-y: auto; }
+            .container { height: auto; min-height: auto; overflow: visible; }
+            .main-content { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+            .input-panel { border-right: none; border-bottom: 1px solid #eee; max-height: none; overflow: visible; }
+            .center-panel { max-height: none; overflow: visible; }
+            .canvas-wrapper { min-height: 250px; }
+            .result-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div class="container">
+    <div class="header">
+        <div class="header-content">
+            <h2>🛠️ เครื่องคำนวณเมทัลชีท</h2>
+            <div class="subtitle">ระบบประเมินราคาและจำนวนแผ่น - Sangthai Metal Sheet</div>
+        </div>
+        <button class="btn-print-top" onclick="window.print()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            พิมพ์ใบรายการ
+        </button>
+    </div>
+    
+    <div class="main-content">
+        <!-- 1. INPUTS (LEFT) -->
+        <div class="panel input-panel">
+            <div class="section-title">📝 ข้อมูลการสั่งตัด</div>
+            
+            <div class="form-group">
+                <label>ประเภทหลังคา (Roof Type)</label>
+                <div class="type-selector">
+                    <label class="type-option active" id="opt-slope" onclick="toggleRoofType('slope')">
+                        <input type="radio" name="roofType" value="slope" checked>
+                        1. จั่ว/เพิงแหงน
+                    </label>
+                    <label class="type-option" id="opt-rightTri" onclick="toggleRoofType('rightTri')">
+                        <input type="radio" name="roofType" value="rightTri">
+                        2. สามเหลี่ยม (มุมฉาก)
+                    </label>
+                    <label class="type-option" id="opt-curve" onclick="toggleRoofType('curve')">
+                        <input type="radio" name="roofType" value="curve">
+                        3. ทรงโค้ง
+                    </label>
+                    <label class="type-option" id="opt-triangle" onclick="toggleRoofType('triangle')">
+                        <input type="radio" name="roofType" value="triangle">
+                        4. ทรงสามเหลี่ยม (หน้าจั่ว)
+                    </label>
+                    <label class="type-option" id="opt-trapezoid" onclick="toggleRoofType('trapezoid')">
+                        <input type="radio" name="roofType" value="trapezoid">
+                        5. สี่เหลี่ยมคางหมู
+                    </label>
+                    <label class="type-option" id="opt-irregular" onclick="toggleRoofType('irregular')">
+                        <input type="radio" name="roofType" value="irregular">
+                        6. สี่เหลี่ยมด้านไม่เท่า
+                    </label>
+                    <label class="type-option" id="opt-parallelogram" onclick="toggleRoofType('parallelogram')">
+                        <input type="radio" name="roofType" value="parallelogram">
+                        7. สี่เหลี่ยมด้านขนาน
+                    </label>
+                    <label class="type-option" id="opt-polygon" onclick="toggleRoofType('polygon')">
+                        <input type="radio" name="roofType" value="polygon">
+                        8. หลายเหลี่ยม (พิกัด)
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>1. เลือกรุ่นแผ่น (Profile)</label>
+                <select id="sheetProfile" onchange="updateModelInfo()">
+                    <option value="" disabled selected>-- กรุณาเลือกรุ่น --</option>
+                    <optgroup label="ST COOLING ROOF (หลังคาติดฉนวน PU)">
+                        <option value="0.75|3">ST-25-750PU (75 ซม.)</option>
+                        <option value="0.76|3">ST-25-760PU / ST-27 (76 ซม.)</option>
+                        <option value="0.76|2">ST-32-760PU / ST-40 (76 ซม.)</option>
+                        <option value="0.30|3">ST-SNAPLOCK 300-PU (30 ซม.)</option>
+                    </optgroup>
+                    <optgroup label="ROOF PROFILE (หลังคาลอนเปลือย)">
+                        <option value="0.76|3">ST-25-760 ลอนมาตรฐาน (76 ซม.)</option>
+                        <option value="0.75|3">ST-25-750 ลอนนิยม (75 ซม.)</option>
+                        <option value="0.75|5">ST-SPAIN-750 ลอนสเปน (75 ซม.)</option>
+                        <option value="0.30|2">ST-SNAPLOCK-300 (30 ซม.)</option>
+                    </optgroup>
+                    <option value="custom|0">กำหนดความกว้างเอง...</option>
+                </select>
+                <div id="modelInfo" class="model-info"></div>
+                <div id="customInputBox" class="custom-width-box">
+                    <label>ระบุความกว้างสุทธิ (เมตร):</label>
+                    <input type="number" id="customVal" placeholder="0.76" step="0.01">
+                </div>
+            </div>
+
+            <!-- Standard Inputs (Slope) -->
+            <div id="inputs-standard">
+                <div class="form-group">
+                    <label id="lbl-width">2. ความกว้างหน้าอาคาร (ม.)</label>
+                    <input type="number" id="roofWidth" placeholder="ความกว้างแนวนอน" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-run">3. ความยาวแนวราบ (Run) (ม.)</label>
+                    <input type="number" id="roofRun" placeholder="จั่วถึงปลายเสา" step="0.01">
+                </div>
+            </div>
+
+            <!-- Right Triangle Inputs -->
+            <div id="inputs-right-tri" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้างฐาน (Base) (ม.)</label>
+                    <input type="number" id="rightTriBase" placeholder="ความกว้างแนวนอน" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูง (Height) (ม.)</label>
+                    <input type="number" id="rightTriHeight" placeholder="ความสูงด้านที่ยกสูง" step="0.01">
+                </div>
+            </div>
+
+            <!-- Triangle Inputs (Isosceles) -->
+            <div id="inputs-triangle" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความยาวฐาน (Base) (ม.)</label>
+                    <input type="number" id="triBase" placeholder="ความยาวฐานของสามเหลี่ยม" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูง (Height) (ม.)</label>
+                    <input type="number" id="triHeight" placeholder="ความสูงจากฐานถึงยอดจั่ว" step="0.01">
+                </div>
+            </div>
+
+            <!-- Trapezoid Inputs -->
+            <div id="inputs-trapezoid" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width/Base) (ม.)</label>
+                    <input type="number" id="trapWidth" placeholder="ความกว้างรวมแนวนอน" step="0.01">
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>3. สูงซ้าย (L) (ม.)</label>
+                        <input type="number" id="trapHeightL" placeholder="ความสูงด้านซ้าย" step="0.01">
+                    </div>
+                    <div>
+                        <label>4. สูงขวา (R) (ม.)</label>
+                        <input type="number" id="trapHeightR" placeholder="ความสูงด้านขวา" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Irregular Inputs -->
+            <div id="inputs-irregular" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width) (ม.)</label>
+                    <input type="number" id="irrWidth" placeholder="ความกว้างรวมแนวนอน" step="0.01">
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>3. สูงบน-ซ้าย (TL)</label>
+                        <input type="number" id="irrHTL" placeholder="ความสูง" step="0.01">
+                    </div>
+                    <div>
+                        <label>4. สูงบน-ขวา (TR)</label>
+                        <input type="number" id="irrHTR" placeholder="ความสูง" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>5. สูงล่าง-ซ้าย (BL)</label>
+                        <input type="number" id="irrHBL" value="0" placeholder="ปกติ 0" step="0.01">
+                    </div>
+                    <div>
+                        <label>6. สูงล่าง-ขวา (BR)</label>
+                        <input type="number" id="irrHBR" value="0" placeholder="ปกติ 0" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parallelogram Inputs -->
+            <div id="inputs-parallelogram" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width) (ม.)</label>
+                    <input type="number" id="paraWidth" placeholder="ความกว้างหน้าอาคาร" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความยาวแนวราบ (Run) (ม.)</label>
+                    <input type="number" id="paraRun" placeholder="จั่วถึงปลายเสา" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>4. ระยะเยื้องศูนย์ (Skew/Offset) (ม.)</label>
+                    <input type="number" id="paraSkew" value="0" placeholder="ระยะเอียงของด้านข้าง" step="0.01">
+                </div>
+            </div>
+            
+             <!-- Polygon Inputs (Custom Coords) -->
+            <div id="inputs-polygon" style="display:none;">
+                <label style="margin-top:5px; margin-bottom:5px; font-weight:bold;">2. กำหนดจุดพิกัด (X, Y)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 80px; gap:8px; margin-bottom:5px;">
+                    <input type="number" id="polyX" placeholder="X (กว้าง)" step="0.1">
+                    <input type="number" id="polyY" placeholder="Y (ลึก)" step="0.1">
+                    <button class="btn-add" onclick="addPoint()">+ เพิ่ม</button>
+                </div>
+                <div class="point-list" id="pointListContainer">
+                     <div style="padding:10px; text-align:center; color:#999; font-size:0.9rem;">ยังไม่มีจุดพิกัด</div>
+                </div>
+                <button class="btn-small" onclick="clearPoints()" style="margin-top:5px; width:100%; color:red;">ล้างค่าทั้งหมด</button>
+            </div>
+            
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div id="input-overhang-container">
+                    <label>4. ยื่นชายคา (ม.)</label>
+                    <input type="number" id="overhang" value="1.00" step="0.01">
+                </div>
+                <div>
+                    <div id="input-angle">
+                        <label>5. ความชัน (°)</label>
+                        <input type="number" id="angle" value="5" step="0.5">
+                    </div>
+                    <div id="input-curve-height" style="display:none;">
+                        <label>5. กำหนดส่วนโค้ง</label>
+                        <div class="curve-mode-selector">
+                            <div class="curve-mode-btn active" id="btn-mode-h" onclick="setCurveMode('h')">จากความสูง (H)</div>
+                            <div class="curve-mode-btn" id="btn-mode-r" onclick="setCurveMode('r')">จากรัศมี (R)</div>
+                        </div>
+                        <input type="number" id="curveValue" value="1.50" step="0.1" placeholder="ระบุความสูง H (ม.)">
+                        <div id="curve-hint" style="font-size:0.75rem; color:#666; margin-top:4px; text-align:right;"></div>
+                        
+                        <div style="margin-top:10px; background:#fff3e0; padding:8px; border-radius:6px; border:1px solid #ffe0b2;">
+                            <label style="cursor:pointer; display:flex; align-items:center; margin:0; font-size:0.9rem; color:#e65100;">
+                                <input type="checkbox" id="straightEaves" onchange="calculate()" style="width:16px; height:16px; margin-right:8px; accent-color:#e65100;">
+                                ชายคาเป็นแผ่นตรง
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>ราคาต่อเมตร (บาท)</label>
+                <input type="number" id="pricePerMeter" placeholder="เช่น 120 (ใส่ 0 หากไม่ระบุ)" step="1">
+            </div>
+            
+            <div id="warningMsg" class="warning-msg"></div>
+
+            <button class="btn-calc" onclick="calculate()"><span>คำนวณผลลัพธ์</span></button>
+        </div>
+
+        <!-- 2. VISUALIZER & RESULTS (RIGHT) -->
+        <div class="panel center-panel">
+            <div id="exportArea">
+                <!-- Header เฉพาะตอน Print -->
+                <div id="print-header" style="margin-bottom:20px; border-bottom:2px solid #E30613; padding-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                        <div>
+                            <h2 style="margin:0; color:#E30613; font-size:1.6rem;">ใบรายการคำนวณเมทัลชีท</h2>
+                            <p style="margin:5px 0 0; color:#666; font-size:0.9rem;">Sangthai Metal Sheet Calculator System</p>
+                        </div>
+                        <div style="text-align:right; font-size:0.8rem; color:#888;">
+                            วันที่: <span id="print-date">-</span><br>
+                            เวลา: <span id="print-time">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Summary เฉพาะตอน Print -->
+                <div id="print-inputs" style="margin-bottom:20px; background:#f9f9f9; padding:15px; border-radius:8px; border:1px solid #eee;">
+                    <h3 style="margin-top:0; font-size:1rem; color:#2c3e50; border-bottom:1px solid #ddd; padding-bottom:5px;">📌 สรุปข้อมูลหน้างาน (Input Data)</h3>
+                    <table class="print-table">
+                        <tr>
+                            <td><strong>ประเภทหลังคา:</strong> <span id="print-type">-</span></td>
+                            <td><strong>รุ่นแผ่น:</strong> <span id="print-model">-</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ความกว้างอาคาร:</strong> <span id="print-width">-</span> ม.</td>
+                            <td><strong>ระยะราบ/ช่วงเสา:</strong> <span id="print-run">-</span> ม.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ยื่นชายคา:</strong> <span id="print-overhang">-</span> ม.</td>
+                            <td><strong>ความสูง/ความชัน:</strong> <span id="print-slope-h">-</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ราคาต่อหน่วย:</strong> <span id="print-uprice">-</span> บาท</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="section-title">📊 ภาพจำลองและสรุปผล</div>
+                <div class="canvas-wrapper" id="canvasContainer">
+                    <canvas id="roofCanvas"></canvas>
+                </div>
+                
+                <div class="result-grid">
+                    <div class="result-card highlight">
+                        <span class="card-label" id="labelLength">ความยาวแผ่นตัด</span>
+                        <span class="card-value primary" id="outLength">-</span>
+                    </div>
+                    <div class="result-card highlight">
+                        <span class="card-label">จำนวนแผ่นเมทัลชีท</span>
+                        <span class="card-value primary" id="outCount">-</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="card-label">พื้นที่ขาย / พื้นที่จริง</span>
+                        <div style="display:flex; justify-content:space-around; align-items:baseline; margin-top:5px;">
+                            <div style="text-align:center;">
+                                 <div class="card-value" id="outAreaBillable" style="font-size:1.2rem;">-</div>
+                                 <div style="font-size:0.8rem; color:#888;">ซื้อ (ตร.ม.)</div>
+                            </div>
+                            <div style="border-left:1px solid #ddd; height:30px;"></div>
+                            <div style="text-align:center;">
+                                 <div class="card-value" id="outAreaReal" style="font-size:1.2rem; color:#666;">-</div>
+                                 <div style="font-size:0.8rem; color:#888;">จริง (ตร.ม.)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- New Gable Area for Curve -->
+                <div id="curveGableRow" style="display:none; background:#e8f5e9; padding:10px 15px; border-radius:8px; margin-bottom:15px; border:1px solid #c8e6c9; color:#2e7d32;">
+                    <strong>📐 พื้นที่ปิดจั่ว/ผนังข้าง (Gable Area):</strong> 
+                    <span id="outGableArea" style="font-weight:bold; font-size:1.1rem; margin-left:10px;">0</span> ตร.ม. 
+                    <span style="font-size:0.8rem; opacity:0.8;">(พื้นที่ใต้ท้องโค้ง 1 ด้าน)</span>
+                </div>
+
+                <div id="priceRow" class="price-summary">
+                    <span>💰 ราคาประเมินรวม</span>
+                    <span style="font-size:1.5rem; font-weight:bold;" id="outPrice">0 บาท</span>
+                </div>
+
+                <div class="accessory-list">
+                    <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบ (ประมาณการ):</strong>
+                    <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
+                        <li>สกรูยึดแผ่น (ยาว): <span id="outScrewMain" style="font-weight:bold;">0</span> ตัว <span id="screwMainDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
+                        <li>สกรูยึดครอบ (สั้น): <span id="outScrewFlash" style="font-weight:bold;">0</span> ตัว <span id="screwFlashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
+                        <li>แผ่นครอบ (Flashing) รวมราง: <span id="outFlash" style="font-weight:bold;">0</span> เมตร <span id="flashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
+                    </ul>
+                </div>
+
+                <!-- Formula Box for Triangle/Trapezoid -->
+                <div id="cuttingFormula" class="formula-box">
+                    <h4>🧮 วิธีคำนวณ (สูตรตรวจสอบ)</h4>
+                    <div id="formulaContent"></div>
+                </div>
+
+                <!-- Cutting Sheet List Output -->
+                <div id="cuttingSheetList" class="cutting-list-container">
+                    <div class="cutting-list-header">
+                        <span>✂️ รายการตัดแผ่น (Cutting List)</span>
+                        <span style="font-size:0.8rem; font-weight:normal; color:#666;">(เรียงจากซ้ายไปขวา)</span>
+                    </div>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <table class="cutting-table">
+                            <thead>
+                                <tr>
+                                    <th>แผ่นที่</th>
+                                    <th>ระยะ (ม.)</th>
+                                    <th>ความยาวตัด (ม.)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sheetListBody">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let calcData = { calculated: false, profileName: "", length: 0, count: 0, area: 0, screws: 0, flashing: 0, price: 0, angle: 0, isCurve: false };
+    let currentMode = 'slope'; // slope, rightTri, curve, triangle, trapezoid, irregular, parallelogram, polygon
+    let isCurvedMode = false;
+    let curveCalcMode = 'h'; // 'h' for height, 'r' for radius
+    let polygonPoints = []; // Stores objects {x: 0, y: 0}
+
+    function initApp() {
+        resizeCanvas();
+        toggleRoofType('slope'); // Set default mode correctly
+        drawPlaceholder();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if(calcData.calculated) {
+                calculate(); 
+            } else {
+                drawPlaceholder();
+            }
+        });
+        
+        // Add Enter key support for polygon inputs
+        document.getElementById("polyY").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                addPoint();
+            }
+        });
+    }
+
+    function showWarning(msg) {
+        const el = document.getElementById('warningMsg');
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+    
+    function addPoint() {
+        let x = parseFloat(document.getElementById('polyX').value);
+        let y = parseFloat(document.getElementById('polyY').value);
+        
+        if (isNaN(x) || isNaN(y)) {
+            showWarning("กรุณาระบุค่า X และ Y ให้ถูกต้อง");
+            return;
+        }
+        
+        polygonPoints.push({x: x, y: y});
+        document.getElementById('polyX').value = '';
+        document.getElementById('polyY').value = '';
+        document.getElementById('polyX').focus();
+        renderPointList();
+    }
+    
+    function removePoint(index) {
+        polygonPoints.splice(index, 1);
+        renderPointList();
+    }
+    
+    function clearPoints() {
+        polygonPoints = [];
+        renderPointList();
+    }
+    
+    function renderPointList() {
+        const container = document.getElementById('pointListContainer');
+        if (polygonPoints.length === 0) {
+            container.innerHTML = '<div style="padding:10px; text-align:center; color:#999; font-size:0.9rem;">ยังไม่มีจุดพิกัด</div>';
+            return;
+        }
+        
+        let html = '';
+        polygonPoints.forEach((p, index) => {
+            html += `
+                <div class="point-item">
+                    <span>${index + 1}. X: <strong>${p.x}</strong>, Y: <strong>${p.y}</strong></span>
+                    <button class="btn-small" onclick="removePoint(${index})" style="color:red;">ลบ</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function toggleRoofType(type) {
+        currentMode = type;
+        isCurvedMode = (type === 'curve');
+        
+        // Update Buttons
+        document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
+        document.getElementById('opt-' + type).classList.add('active');
+
+        // Reset display
+        document.getElementById('inputs-standard').style.display = 'none';
+        document.getElementById('inputs-right-tri').style.display = 'none';
+        document.getElementById('inputs-triangle').style.display = 'none';
+        document.getElementById('inputs-trapezoid').style.display = 'none';
+        document.getElementById('inputs-irregular').style.display = 'none';
+        document.getElementById('inputs-parallelogram').style.display = 'none';
+        document.getElementById('inputs-polygon').style.display = 'none';
+        
+        document.getElementById('input-angle').style.display = 'block';
+        document.getElementById('input-curve-height').style.display = 'none';
+        document.getElementById('curveGableRow').style.display = 'none';
+        document.getElementById('cuttingSheetList').style.display = 'none';
+        document.getElementById('cuttingFormula').style.display = 'none';
+        
+        // Default Overhang Visible
+        document.getElementById('input-overhang-container').style.display = 'block';
+
+        if(type === 'slope') {
+            document.getElementById('inputs-standard').style.display = 'block';
+            document.getElementById('lbl-width').innerText = '2. ความกว้างหน้าอาคาร (ม.)';
+            document.getElementById('lbl-run').innerText = '3. ความยาวแนวราบ (Run) (ม.)';
+            document.getElementById('roofRun').placeholder = "จั่วถึงปลายเสา";
+        } else if (type === 'rightTri') {
+            document.getElementById('inputs-right-tri').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none'; 
+        } else if (type === 'curve') {
+            document.getElementById('inputs-standard').style.display = 'block';
+            document.getElementById('input-angle').style.display = 'none';
+            document.getElementById('input-curve-height').style.display = 'block';
+            document.getElementById('lbl-run').innerText = '3. ความกว้างช่วงเสา (Span) (ม.)';
+            document.getElementById('roofRun').placeholder = "ระยะห่างระหว่างเสา";
+            setCurveMode('h'); 
+        } else if (type === 'triangle') {
+            document.getElementById('inputs-triangle').style.display = 'block';
+        } else if (type === 'trapezoid') {
+            document.getElementById('inputs-trapezoid').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none'; 
+        } else if (type === 'irregular') {
+            document.getElementById('inputs-irregular').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none';
+        } else if (type === 'parallelogram') {
+            document.getElementById('inputs-parallelogram').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none';
+        } else if (type === 'polygon') {
+            document.getElementById('inputs-polygon').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none';
+        }
+    }
+
+    function setCurveMode(mode) {
+        curveCalcMode = mode;
+        const input = document.getElementById('curveValue');
+        const hint = document.getElementById('curve-hint');
+        
+        document.getElementById('btn-mode-h').classList.toggle('active', mode === 'h');
+        document.getElementById('btn-mode-r').classList.toggle('active', mode === 'r');
+
+        if(mode === 'h') {
+            input.placeholder = "ระบุความสูง H (ม.)";
+            hint.innerText = "ระบุความสูงจากระดับคานถึงยอดโดม";
+        } else {
+            input.placeholder = "ระบุรัศมี R (ม.)";
+            hint.innerText = "ระบุรัศมีความโค้งที่ต้องการ";
+        }
+    }
+
+    function resizeCanvas() {
+        const container = document.getElementById('canvasContainer');
+        const canvas = document.getElementById('roofCanvas');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+
+    function updateModelInfo() {
+        const select = document.getElementById("sheetProfile");
+        const customBox = document.getElementById("customInputBox");
+        const modelInfo = document.getElementById("modelInfo");
+        const val = select.value;
+
+        if (val.startsWith("custom")) {
+            customBox.style.display = "block";
+            modelInfo.innerText = "";
+            document.getElementById("customVal").focus();
+        } else {
+            customBox.style.display = "none";
+            const parts = val.split("|");
+            const width = parseFloat(parts[0]);
+            const minSlope = parseInt(parts[1]);
+            let slopeText = "";
+            if(minSlope > 0) slopeText = ` | แนะนำ Slope ≥ ${minSlope}°`;
+            modelInfo.innerText = `✓ หน้ากว้าง: ${width} ม.${slopeText}`;
+        }
+    }
+
+    function drawPlaceholder() {
+        drawRoof(4, 5, 1, 5.07, false);
+    }
+
+    function calculate() {
+        let overhang = parseFloat(document.getElementById('overhang').value) || 0;
+        
+        // Force overhang to 0 for types that don't use it
+        if (currentMode === 'rightTri' || currentMode === 'trapezoid' || currentMode === 'irregular' || currentMode === 'parallelogram' || currentMode === 'polygon') {
+            overhang = 0;
+        }
+
+        let price = parseFloat(document.getElementById('pricePerMeter').value) || 0;
+        let angle = parseFloat(document.getElementById('angle').value) || 0;
+        
+        let profileSelect = document.getElementById('sheetProfile');
+        let profileVal = profileSelect.value;
+        let profileName = profileSelect.options[profileSelect.selectedIndex].text;
+
+        if(profileVal === "") {
+            showWarning("⚠️ กรุณาเลือกรุ่นแผ่นเมทัลชีท");
+            return;
+        }
+
+        let sheetW = 0;
+        if(profileVal.startsWith("custom")) {
+            sheetW = parseFloat(document.getElementById('customVal').value) || 0;
+            if(sheetW === 0) {
+                showWarning("⚠️ กรุณาระบุความกว้างแผ่นที่ต้องการ");
+                return;
+            }
+            profileName = "สั่งผลิตพิเศษ (กว้าง " + sheetW + " ม.)";
+        } else {
+            const parts = profileVal.split("|");
+            sheetW = parseFloat(parts[0]);
+        }
+
+        let totalLen = 0;
+        let geometricArea = 0;
+        let gableArea = 0;
+        let sheetCount = 0;
+        let totalLinearMeter = 0;
+        let flashingLen = 0;
+        let billableArea = 0;
+
+        const rad = angle * (Math.PI / 180);
+        const secVal = 1 / Math.cos(rad);
+
+        // Reset visibility
+        document.getElementById('cuttingSheetList').style.display = 'none';
+        document.getElementById('cuttingFormula').style.display = 'none';
+
+        // --- CALCULATION LOGIC ---
+
+        if (currentMode === 'slope') {
+            document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด";
+            let width = parseFloat(document.getElementById('roofWidth').value) || 0;
+            let run = parseFloat(document.getElementById('roofRun').value) || 0;
+            if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกขนาดให้ครบถ้วน"); return; }
+
+            let totalHorizontalRun = run + overhang;
+            let slopeLength = totalHorizontalRun * secVal;
+            totalLen = slopeLength + 0.05; 
+            
+            geometricArea = width * slopeLength;
+            
+            sheetCount = Math.ceil(width / sheetW);
+            totalLinearMeter = totalLen * sheetCount;
+            billableArea = totalLinearMeter * sheetW;
+            
+            flashingLen = width + (totalLen * 2);
+
+            drawRoof(run, angle, overhang, totalLen, false);
+            
+            document.getElementById('print-type').innerText = "ทรงจั่ว/เพิงแหงน";
+            document.getElementById('print-slope-h').innerText = angle + " องศา";
+            document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+
+        } else if (currentMode === 'rightTri') {
+            document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
+            let base = parseFloat(document.getElementById('rightTriBase').value) || 0;
+            let height = parseFloat(document.getElementById('rightTriHeight').value) || 0;
+            
+            if(base === 0 || height === 0) { showWarning("⚠️ กรุณากรอกฐานและสูง"); return; }
+
+            // Apply Overhang: Extend Base (Disabled for this mode by request, forced to 0 in calculate start)
+            let eff_base = base;
+            let eff_height = height;
+
+            // Real Area considers slope
+            let areaPlan = 0.5 * eff_base * eff_height;
+            geometricArea = areaPlan * secVal; 
+            
+            sheetCount = Math.ceil(eff_base / sheetW);
+            
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = [];
+
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start = (i-1) * sheetW;
+                let x_end = Math.min(i * sheetW, eff_base);
+                let h_max = eff_height * (1 - (x_start / eff_base));
+                // Apply secVal to the cut length
+                let cut_len = (h_max * secVal) + 0.05; 
+                if (cut_len < 0.05) cut_len = 0.05;
+
+                currentTotalLen += cut_len;
+
+                let row = `<tr>
+                    <td>${i}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+            }
+
+            totalLinearMeter = currentTotalLen;
+            billableArea = totalLinearMeter * sheetW;
+            
+            // Flashing: Vertical(Sloped) + Base + Hypotenuse
+            // Vertical side becomes: height * secVal
+            // Base remains: base
+            // Hypotenuse becomes: sqrt(base^2 + (height*secVal)^2)
+            let vertSloped = eff_height * secVal;
+            let hypSloped = Math.sqrt(Math.pow(eff_base, 2) + Math.pow(vertSloped, 2));
+            flashingLen = vertSloped + eff_base + hypSloped; 
+
+            drawRightTriangle(eff_base, eff_height, base, height, sheetData);
+            
+            document.getElementById('print-type').innerText = "สามเหลี่ยม (มุมฉาก)";
+            document.getElementById('print-slope-h').innerText = `สูง ${eff_height.toFixed(2)} ม. / ${angle}°`;
+            document.getElementById('print-width').innerText = eff_base.toFixed(2) + " (ฐานรวม)";
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
+            
+            let formulaHtml = `
+                <div class="formula-line"><span>1. ระยะ (Dimension):</span> <span class="formula-val">ฐาน ${eff_base.toFixed(2)} / สูง ${eff_height.toFixed(2)}</span></div>
+                <div class="formula-line"><span>2. ตัวคูณองศา (${angle}°):</span> <span class="formula-val">Sec(${angle}°) = ${secVal.toFixed(4)}</span></div>
+                <div class="formula-line"><span>3. พื้นที่จริง (Real Area):</span> <span class="formula-val">(0.5 × ${eff_base} × ${eff_height}) × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>4. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
+            document.getElementById('cuttingSheetList').style.display = 'block';
+
+        } else if (currentMode === 'curve') {
+            document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด (โค้ง)";
+            let width = parseFloat(document.getElementById('roofWidth').value) || 0;
+            let run = parseFloat(document.getElementById('roofRun').value) || 0;
+            let curveVal = parseFloat(document.getElementById('curveValue').value) || 0;
+            let isStraightEaves = document.getElementById('straightEaves').checked;
+
+            if(width===0 || run===0 || curveVal===0) { showWarning("⚠️ กรุณากรอกข้อมูลให้ครบ"); return; }
+            
+            let h = 0, R = 0;
+            if (curveCalcMode === 'h') {
+                h = curveVal;
+                R = (h/2) + ((run*run) / (8*h));
+            } else {
+                R = curveVal;
+                if(R < run/2) { showWarning("⚠️ รัศมี (R) น้อยเกินไป"); return; }
+                h = R - Math.sqrt((R*R) - ((run/2)*(run/2)));
+            }
+
+            let theta = 2 * Math.asin(run / (2*R));
+            let arcLen = R * theta;
+            
+            if (isStraightEaves) {
+                let halfTheta = Math.asin((run/2)/R); 
+                let straightLen = overhang / Math.cos(halfTheta);
+                totalLen = arcLen + (straightLen * 2) + 0.05;
+            } else {
+                totalLen = arcLen + (overhang * 2) + 0.05; 
+            }
+            
+            geometricArea = width * totalLen;
+            gableArea = 0.5 * R * R * (theta - Math.sin(theta));
+            
+            sheetCount = Math.ceil(width / sheetW);
+            totalLinearMeter = totalLen * sheetCount;
+            billableArea = totalLinearMeter * sheetW;
+            flashingLen = totalLen * 2; // Sides only
+
+            drawCurve(run, h, overhang, totalLen, R, isStraightEaves);
+            
+            let typeText = isStraightEaves ? "ทรงโค้ง (ชายคาตรง)" : "ทรงโค้ง (Curved)";
+            document.getElementById('print-type').innerText = typeText;
+            document.getElementById('print-slope-h').innerText = `H=${h.toFixed(2)}m / R=${R.toFixed(2)}m`;
+            document.getElementById('curveGableRow').style.display = 'block';
+            document.getElementById('outGableArea').innerText = gableArea.toFixed(2);
+            document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+
+        } else if (currentMode === 'triangle') {
+            const rad = angle * (Math.PI / 180);
+            const secVal = 1 / Math.cos(rad);
+            
+            document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
+            let base = parseFloat(document.getElementById('triBase').value) || 0;
+            let h_plan = parseFloat(document.getElementById('triHeight').value) || 0;
+            if(base===0 || h_plan===0) { showWarning("⚠️ กรุณากรอกฐานและสูง"); return; }
+            
+            let eff_h = h_plan + overhang;
+            let eff_b = base;
+            if (h_plan > 0) {
+                eff_b = base * (eff_h / h_plan);
+            }
+
+            let areaPlan = 0.5 * eff_b * eff_h;
+            let areaReal = areaPlan * secVal; 
+            geometricArea = areaReal;
+            
+            sheetCount = Math.ceil(eff_b / sheetW);
+            
+            let sidePlan = Math.sqrt(Math.pow(eff_b/2, 2) + Math.pow(eff_h, 2));
+            let sideReal = sidePlan; 
+            if(angle > 0) {
+                 sideReal = sidePlan * secVal; 
+            }
+            flashingLen = sideReal * 2;
+
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = []; 
+            
+            let center = eff_b / 2;
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start = (i-1) * sheetW;
+                let x_end = Math.min(i * sheetW, eff_b);
+                let h_max = 0;
+                
+                if (x_start <= center && x_end >= center) {
+                    h_max = eff_h;
+                } else {
+                    let h_start = (x_start <= center) ? (eff_h/center)*x_start : (eff_h/center)*(eff_b - x_start);
+                    let h_end = (x_end <= center) ? (eff_h/center)*x_end : (eff_h/center)*(eff_b - x_end);
+                    h_max = Math.max(h_start, h_end);
+                }
+                
+                let cut_len = (h_max * secVal) + 0.05; 
+                
+                currentTotalLen += cut_len;
+
+                let row = `<tr>
+                    <td>${i}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+            }
+            
+            totalLinearMeter = currentTotalLen;
+            billableArea = totalLinearMeter * sheetW; 
+            
+            drawTriangle(eff_b, eff_h, base, h_plan, sheetData);
+            
+            document.getElementById('print-type').innerText = "ทรงสามเหลี่ยม (Triangle)";
+            document.getElementById('print-slope-h').innerText = angle + " องศา";
+            document.getElementById('print-width').innerText = eff_b.toFixed(2) + " (ฐานรวม)";
+            document.getElementById('print-run').innerText = eff_h.toFixed(2) + " (สูงรวม)";
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
+
+            let formulaHtml = `
+                <div class="formula-line"><span>1. ปรับระยะรวมชายคา (สูง):</span> <span class="formula-val">${h_plan} + ${overhang} = ${eff_h.toFixed(2)} ม.</span></div>
+                <div class="formula-line"><span>2. ปรับระยะรวมชายคา (ฐาน):</span> <span class="formula-val">${base} × (${eff_h.toFixed(2)}/${h_plan}) = ${eff_b.toFixed(2)} ม.</span></div>
+                <div class="formula-line"><span>3. พื้นที่จริง (Real Area):</span> <span class="formula-val">(0.5 × ${eff_b.toFixed(2)} × ${eff_h.toFixed(2)}) × ${secVal.toFixed(3)} = ${areaReal.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>4. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
+            document.getElementById('cuttingSheetList').style.display = 'block';
+
+        } else if (currentMode === 'trapezoid') {
+            document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
+            let width = parseFloat(document.getElementById('trapWidth').value) || 0;
+            let hL = parseFloat(document.getElementById('trapHeightL').value) || 0;
+            let hR = parseFloat(document.getElementById('trapHeightR').value) || 0;
+            
+            if(width === 0 || (hL === 0 && hR === 0)) { showWarning("⚠️ กรุณากรอกขนาดให้ครบ"); return; }
+
+            // Trapezoid logic
+            let areaPlan = width * (hL + hR) / 2;
+            geometricArea = areaPlan * secVal; 
+            
+            sheetCount = Math.ceil(width / sheetW);
+            
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = [];
+
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start = (i-1) * sheetW;
+                let x_end = Math.min(i * sheetW, width);
+                
+                let y_start = hL + (hR - hL) * (x_start / width);
+                let y_end = hL + (hR - hL) * (x_end / width);
+                
+                let h_max = Math.max(y_start, y_end);
+                // Apply secVal to cut length
+                let cut_len = (h_max * secVal) + 0.05;
+
+                currentTotalLen += cut_len;
+
+                let row = `<tr>
+                    <td>${i}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+            }
+
+            totalLinearMeter = currentTotalLen;
+            billableArea = totalLinearMeter * sheetW;
+            flashingLen = (width + hL + hR + Math.sqrt(Math.pow(width, 2) + Math.pow(Math.abs(hR-hL), 2))) * secVal;
+
+            drawTrapezoid(width, hL, hR, sheetData);
+            
+            document.getElementById('print-type').innerText = "สี่เหลี่ยมคางหมู";
+            document.getElementById('print-slope-h').innerText = `${angle}°`;
+            document.getElementById('print-width').innerText = `${width} (กว้าง)`;
+            document.getElementById('print-run').innerText = `L=${hL} / R=${hR}`;
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
+            
+            let formulaHtml = `
+                <div class="formula-line"><span>1. ตัวคูณองศา (${angle}°):</span> <span class="formula-val">Sec(${angle}°) = ${secVal.toFixed(4)}</span></div>
+                <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${width} × (${hL}+${hR})/2 × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
+            document.getElementById('cuttingSheetList').style.display = 'block';
+        } else if (currentMode === 'irregular') {
+            document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
+            let width = parseFloat(document.getElementById('irrWidth').value) || 0;
+            let hTL = parseFloat(document.getElementById('irrHTL').value) || 0;
+            let hTR = parseFloat(document.getElementById('irrHTR').value) || 0;
+            let hBL = parseFloat(document.getElementById('irrHBL').value) || 0;
+            let hBR = parseFloat(document.getElementById('irrHBR').value) || 0;
+
+            if(width === 0) { showWarning("⚠️ กรุณากรอกความกว้าง"); return; }
+
+            // Irregular logic
+            // Area calculation via integration (Trapezoidal rule approx)
+            // Average height = (hTL + hTR + hBL + hBR) / 4 ??
+            // Actually area = Area under Top - Area under Bottom
+            // Area under Top = Width * (hTL + hTR) / 2
+            // Area under Bottom = Width * (hBL + hBR) / 2
+            // Plan Area = Width * ((hTL + hTR) - (hBL + hBR)) / 2
+            
+            let areaPlan = width * ((hTL + hTR) - (hBL + hBR)) / 2;
+            geometricArea = areaPlan * secVal;
+
+            sheetCount = Math.ceil(width / sheetW);
+            
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = [];
+
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start = (i-1) * sheetW;
+                let x_end = Math.min(i * sheetW, width);
+                
+                // Interpolate Y Top and Y Bottom
+                let yt_start = hTL + (hTR - hTL) * (x_start / width);
+                let yt_end = hTL + (hTR - hTL) * (x_end / width);
+                
+                let yb_start = hBL + (hBR - hBL) * (x_start / width);
+                let yb_end = hBL + (hBR - hBL) * (x_end / width);
+                
+                // Length at start and end of sheet
+                let len_start = yt_start - yb_start;
+                let len_end = yt_end - yb_end;
+                
+                // Cut length must cover the max span required in this strip
+                // Usually Max(yt) - Min(yb)? 
+                // Or simply max(len_start, len_end)?
+                // If the top and bottom slopes are parallel, len is const.
+                // If they diverge, len changes.
+                // Conservative cut: Max Top Y in interval - Min Bottom Y in interval
+                
+                let y_top_max = Math.max(yt_start, yt_end);
+                let y_bot_min = Math.min(yb_start, yb_end);
+                
+                let raw_len = y_top_max - y_bot_min;
+                let cut_len = (raw_len * secVal) + 0.05;
+
+                currentTotalLen += cut_len;
+
+                let row = `<tr>
+                    <td>${i}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ 
+                    id: i, 
+                    x: x_start, 
+                    w: x_end - x_start, 
+                    len: cut_len,
+                    yTop: y_top_max, // For drawing
+                    yBot: y_bot_min
+                });
+            }
+
+            totalLinearMeter = currentTotalLen;
+            billableArea = totalLinearMeter * sheetW;
+            
+            // Flashing approx
+            flashingLen = (width*2 + hTL + hTR + hBL + hBR) * secVal; 
+
+            drawIrregular(width, hTL, hTR, hBL, hBR, sheetData);
+            
+            document.getElementById('print-type').innerText = "สี่เหลี่ยมด้านไม่เท่า";
+            document.getElementById('print-slope-h').innerText = `${angle}°`;
+            document.getElementById('print-width').innerText = `${width} (กว้าง)`;
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
+            
+            let formulaHtml = `
+                <div class="formula-line"><span>1. ตัวคูณองศา (${angle}°):</span> <span class="formula-val">Sec(${angle}°) = ${secVal.toFixed(4)}</span></div>
+                <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
+            document.getElementById('cuttingSheetList').style.display = 'block';
+        } else if (currentMode === 'parallelogram') {
+            document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด";
+            let width = parseFloat(document.getElementById('paraWidth').value) || 0;
+            let run = parseFloat(document.getElementById('paraRun').value) || 0;
+            let skew = parseFloat(document.getElementById('paraSkew').value) || 0;
+
+            if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกขนาดให้ครบถ้วน"); return; }
+
+            // Parallelogram logic
+            // It acts like a slope roof but side flashings are longer.
+            // All sheets have same cut length = SlopeLength
+            
+            let totalHorizontalRun = run + overhang;
+            let slopeLength = totalHorizontalRun * secVal;
+            totalLen = slopeLength + 0.05;
+            
+            geometricArea = width * slopeLength;
+            
+            sheetCount = Math.ceil(width / sheetW);
+            totalLinearMeter = totalLen * sheetCount;
+            billableArea = totalLinearMeter * sheetW;
+            
+            // Flashing: Width + Width + 2 * SkewedSideLength
+            // SkewedSideLength in 3D:
+            // Plan Side Length = sqrt(Run^2 + Skew^2)
+            // Real Side Length = sqrt((Run*secVal)^2 + Skew^2) -- Wait.
+            // If slope is along Run:
+            // Vertical Rise = Run * tan(angle).
+            // 3D Distance = sqrt( PlanRun^2 + PlanSkew^2 + Rise^2 )
+            // = sqrt( Run^2 + Skew^2 + (Run*tan)^2 )
+            // = sqrt( Run^2(1+tan^2) + Skew^2 )
+            // = sqrt( (Run*sec)^2 + Skew^2 )
+            let realSideLen = Math.sqrt(Math.pow(totalHorizontalRun * secVal, 2) + Math.pow(skew, 2));
+            
+            flashingLen = (width * 2) + (realSideLen * 2); // Assuming top/bottom flashing + 2 sides
+
+            drawParallelogram(width, run, skew, overhang);
+            
+            document.getElementById('print-type').innerText = "สี่เหลี่ยมด้านขนาน";
+            document.getElementById('print-slope-h').innerText = `${angle}°`;
+            document.getElementById('print-width').innerText = `${width} (กว้าง)`;
+            document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+        } else if (currentMode === 'polygon') {
+            document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
+            
+            if (polygonPoints.length < 3) {
+                 showWarning("⚠️ กรุณากำหนดจุดอย่างน้อย 3 จุด");
+                 return;
+            }
+            
+            // Calculate Polygon Area (Shoelace Formula)
+            let areaPlan = 0;
+            for (let i = 0; i < polygonPoints.length; i++) {
+                let j = (i + 1) % polygonPoints.length;
+                areaPlan += polygonPoints[i].x * polygonPoints[j].y;
+                areaPlan -= polygonPoints[j].x * polygonPoints[i].y;
+            }
+            areaPlan = Math.abs(areaPlan) / 2;
+            
+            geometricArea = areaPlan * secVal;
+            
+            // Find Bounding Box to determine Grid
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            polygonPoints.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+            
+            let width = maxX - minX;
+            sheetCount = Math.ceil(width / sheetW);
+            
+            // Calculate Cuts: Bounding Box approximation for now?
+            // To be accurate, we need to scanline each sheet strip.
+            // Bounding Box Height = maxY - minY
+            // Simple approach: Each sheet length is the full height of the polygon at that X interval.
+            // But since this is a "Simple" polygon mode, let's use Bounding Box Height for Billable Estimate
+            // Or calculate Billable Area = SheetCount * BoundingBoxHeight * secVal?
+            // This is safest (buying rectangles to cover shape).
+            
+            let boundingHeight = maxY - minY;
+            // Adjust length by slope? Slope is usually along Y axis.
+            let sheetLen = (boundingHeight * secVal) + 0.05;
+            
+            totalLinearMeter = sheetCount * sheetLen; // Conservative estimate (Rectangular bounding coverage)
+            billableArea = totalLinearMeter * sheetW;
+            
+            // Flashing: Perimeter
+            let perimeter = 0;
+            for (let i = 0; i < polygonPoints.length; i++) {
+                let j = (i + 1) % polygonPoints.length;
+                let p1 = polygonPoints[i];
+                let p2 = polygonPoints[j];
+                // Distance in Plan
+                let dPlan = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+                // Distance Real (if slope along Y)
+                // dy = p2.y - p1.y
+                // dx = p2.x - p1.x
+                // dReal = sqrt(dx^2 + (dy*sec)^2)
+                let dy = Math.abs(p2.y - p1.y);
+                let dx = Math.abs(p2.x - p1.x);
+                let dReal = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy * secVal, 2));
+                perimeter += dReal;
+            }
+            flashingLen = perimeter;
+            
+            drawPolygon(polygonPoints);
+            
+            document.getElementById('print-type').innerText = "หลายเหลี่ยม (พิกัด)";
+            document.getElementById('print-slope-h').innerText = `${angle}°`;
+            document.getElementById('print-width').innerText = `${width.toFixed(2)} (กว้างรวม)`;
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม. (โดยประมาณ)";
+            
+            let formulaHtml = `
+                <div class="formula-line"><span>1. พื้นที่ระนาบ (Plan Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">คำนวณจากกรอบสี่เหลี่ยมคลุม (Bounding Box) เพื่อเผื่อตัด = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
+        }
+
+        // --- FINAL CALCULATIONS ---
+        
+        let totalPrice = totalLinearMeter * price;
+        let mainScrews = Math.ceil(billableArea * 3.5); 
+        let flashScrews = Math.ceil(flashingLen * 4);
+
+        // OUTPUTS
+        document.getElementById('outCount').innerText = sheetCount + " แผ่น";
+        document.getElementById('outAreaBillable').innerText = billableArea.toFixed(2);
+        document.getElementById('outAreaReal').innerText = geometricArea.toFixed(2);
+        
+        document.getElementById('outScrewMain').innerText = mainScrews;
+        document.getElementById('screwMainDetail').innerText = `(${billableArea.toFixed(1)} ตร.ม.)`;
+        document.getElementById('outScrewFlash').innerText = flashScrews;
+        document.getElementById('outFlash').innerText = flashingLen.toFixed(2);
+        
+        if(price > 0) {
+            document.getElementById('priceRow').style.display = 'flex';
+            document.getElementById('outPrice').innerText = totalPrice.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + " บาท";
+        } else {
+            document.getElementById('priceRow').style.display = 'none';
+        }
+
+        // Print Summary Updates
+        document.getElementById('print-model').innerText = profileName;
+        if(currentMode !== 'trapezoid' && currentMode !== 'triangle' && currentMode !== 'rightTri' && currentMode !== 'irregular' && currentMode !== 'polygon') {
+            document.getElementById('print-width').innerText = document.getElementById('roofWidth').value;
+            document.getElementById('print-run').innerText = document.getElementById('roofRun').value;
+        }
+        document.getElementById('print-overhang').innerText = overhang;
+        document.getElementById('print-uprice').innerText = price > 0 ? price : "-";
+        
+        const now = new Date();
+        document.getElementById('print-date').innerText = now.toLocaleDateString('th-TH');
+        document.getElementById('print-time').innerText = now.toLocaleTimeString('th-TH');
+
+        calcData.calculated = true;
+    }
+
+    function drawGrid(ctx, w, h) {
+        ctx.save();
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        const step = 40;
+        ctx.beginPath();
+        for (let x = 0.5; x < w; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+        for (let y = 0.5; y < h; y += step) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    function drawPolygon(points) {
+        const ctx = document.getElementById('roofCanvas').getContext('2d');
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        if (points.length === 0) return;
+        
+        // Determine Bounds for Scaling
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        points.forEach(p => {
+            if (p.x < minX) minX = p.x;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.y > maxY) maxY = p.y;
+        });
+        
+        let width = maxX - minX;
+        let height = maxY - minY;
+        if(width === 0) width = 1;
+        if(height === 0) height = 1;
+        
+        let padding = 50;
+        let scale = Math.min((w - padding*2) / width, (h - padding*2) / height);
+        
+        // Center the shape
+        let drawW = width * scale;
+        let drawH = height * scale;
+        let startX = (w - drawW) / 2;
+        let startY = (h - drawH) / 2;
+        
+        ctx.beginPath();
+        points.forEach((p, i) => {
+            // Normalize relative to minX, minY
+            let px = startX + (p.x - minX) * scale;
+            let py = startY + (p.y - minY) * scale;
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        // Draw Points and Indexes
+        ctx.fillStyle = '#333';
+        ctx.font = '12px Sarabun';
+        points.forEach((p, i) => {
+            let px = startX + (p.x - minX) * scale;
+            let py = startY + (p.y - minY) * scale;
+            
+            ctx.beginPath(); ctx.arc(px, py, 4, 0, 2*Math.PI); ctx.fill();
+            ctx.fillText(`${i+1}(${p.x},${p.y})`, px + 8, py - 8);
+        });
+        
+        ctx.fillStyle = '#E30613';
+        ctx.font = "14px Sarabun";
+        ctx.fillText("Custom Shape (รูปทรงกำหนดเอง)", startX, startY + drawH + 30);
+    }
+
+    function drawIrregular(width, hTL, hTR, hBL, hBR, sheetData = []) {
+        const ctx = document.getElementById('roofCanvas').getContext('2d');
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        let maxH = Math.max(hTL, hTR);
+        // Assuming bottom heights are usually smaller or 0, but max(hBL, hBR) determines total bounding height if drawn from 0?
+        // Coordinate system: y goes down.
+        // Let's assume hBL/hBR are heights from ground (0).
+        // Total height span = Max(Top) - Min(Bot)?
+        // Or simply Max(Top).
+        
+        let scale = Math.min((w-60)/width, (h-60)/maxH);
+        
+        let dW = width * scale;
+        
+        let x = (w - dW)/2;
+        let groundY = h - 30; // Ground line
+        
+        // Coordinates relative to groundY (going up)
+        // BL: (x, groundY - hBL*scale)
+        // BR: (x+dW, groundY - hBR*scale)
+        // TL: (x, groundY - hTL*scale)
+        // TR: (x+dW, groundY - hTR*scale)
+        
+        let yBL = groundY - (hBL * scale);
+        let yBR = groundY - (hBR * scale);
+        let yTL = groundY - (hTL * scale);
+        let yTR = groundY - (hTR * scale);
+        
+        // Draw Shape
+        ctx.beginPath();
+        ctx.moveTo(x, yBL);
+        ctx.lineTo(x, yTL);
+        ctx.lineTo(x + dW, yTR);
+        ctx.lineTo(x + dW, yBR);
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        drawDim(ctx, x, groundY+20, x+dW, groundY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
+        drawDim(ctx, x-20, yBL, x-20, yTL, `L ${hTL.toFixed(2)}`, 0, '#333');
+        drawDim(ctx, x+dW+20, yBR, x+dW+20, yTR, `R ${hTR.toFixed(2)}`, 0, '#333');
+
+        // Draw Sheets
+        if (sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetX = x + (sheet.x * scale);
+                let sheetW = sheet.w * scale;
+                let centerX = sheetX + sheetW/2;
+                
+                // Draw sheet vertical bar from calculated max top to min bot
+                // Note: sheet.yTop and sheet.yBot are height values, need to convert to canvas coords
+                let sheetYTop = groundY - (sheet.yTop * scale);
+                let sheetYBot = groundY - (sheet.yBot * scale);
+                
+                ctx.beginPath();
+                ctx.moveTo(sheetX + sheetW, sheetYBot);
+                ctx.lineTo(sheetX + sheetW, sheetYTop); 
+                ctx.stroke();
+                
+                let textY = sheetYBot - 20 - ((index % 3) * 15);
+                ctx.fillStyle = '#d84315';
+                ctx.fillText(`#${sheet.id}`, centerX, textY);
+            });
+            ctx.restore();
+        }
+    }
+
+    function drawParallelogram(width, run, skew, overhang) {
+        const ctx = document.getElementById('roofCanvas').getContext('2d');
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        // Draw Top View
+        // Skew shifts the top edge relative to bottom edge
+        let totalRun = run + overhang; // Use run + overhang for visual
+        let maxW = width + Math.abs(skew); // Bounding box width
+        
+        let scale = Math.min((w-60)/maxW, (h-60)/totalRun);
+        
+        let dW = width * scale;
+        let dRun = totalRun * scale;
+        let dSkew = skew * scale;
+        
+        let startX = (w - (dW + Math.abs(dSkew))) / 2;
+        if(dSkew < 0) startX += Math.abs(dSkew); // Shift right if skew is negative
+        
+        let topY = (h - dRun) / 2;
+        let botY = topY + dRun;
+        
+        // Coords
+        // Top Left: (startX + dSkew, topY)
+        // Top Right: (startX + dSkew + dW, topY)
+        // Bot Left: (startX, botY)
+        // Bot Right: (startX + dW, botY)
+        
+        ctx.beginPath();
+        ctx.moveTo(startX + dSkew, topY);
+        ctx.lineTo(startX + dSkew + dW, topY);
+        ctx.lineTo(startX + dW, botY);
+        ctx.lineTo(startX, botY);
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        // Dimensions
+        drawDim(ctx, startX, botY+20, startX+dW, botY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
+        // Vertical Run
+        drawDim(ctx, startX-20, topY, startX-20, botY, `ยาว ${run.toFixed(2)} ม.`, 0, '#333');
+        // Skew
+        if(Math.abs(skew) > 0) {
+            drawDim(ctx, startX, topY-20, startX+dSkew, topY-20, `เยื้อง ${skew.toFixed(2)}`, 0, '#666');
+        }
+        
+        ctx.fillStyle = '#E30613';
+        ctx.font = "14px Sarabun";
+        ctx.fillText("Top View (มุมมองบน)", startX, botY + 45);
+    }
+
+    function drawRoof(run, angle, overhang, calculatedLen) {
+        const canvas = document.getElementById('roofCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const padding = 50;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        let rad = angle * (Math.PI / 180);
+        let rise = run * Math.tan(rad);
+        let overhangDrop = overhang * Math.tan(rad);
+        let totalRise = rise + overhangDrop;
+        let totalRun = run + overhang; 
+
+        let drawW = w - (padding * 2);
+        let drawH = h - (padding * 2);
+        let scaleX = drawW / totalRun;
+        let scaleY = drawH / (totalRise > 0.5 ? totalRise : 0.5);
+        let scale = Math.min(scaleX, drawH / (totalRise * 1.5));
+        if(totalRise < 0.5 && scale < 50) scale = 50;
+
+        let diagramWidth = totalRun * scale;
+        let startX = (w - diagramWidth) / 2;
+        let groundY = h - padding - 20;
+        
+        let ridgeX = startX;
+        let ridgeY = groundY - (totalRise * scale);
+        let wallX = ridgeX + (run * scale);
+        let wallY = groundY - (overhangDrop * scale);
+        let eaveX = ridgeX + (totalRun * scale);
+        let eaveY = groundY;
+
+        ctx.beginPath();
+        ctx.rect(wallX, wallY, 15, (groundY + 20) - wallY);
+        ctx.fillStyle = '#e2e8f0'; ctx.fill();
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1; ctx.stroke();
+
+        ctx.beginPath(); ctx.moveTo(wallX - 30, groundY + 20); ctx.lineTo(wallX + 45, groundY + 20);
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
+
+        ctx.beginPath(); ctx.moveTo(ridgeX, ridgeY); ctx.lineTo(wallX, wallY); ctx.lineTo(ridgeX, wallY); ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'; ctx.fill();
+        ctx.setLineDash([4, 4]); ctx.strokeStyle = '#cbd5e1'; ctx.stroke(); ctx.setLineDash([]);
+
+        ctx.beginPath(); ctx.moveTo(ridgeX, ridgeY); ctx.lineTo(eaveX, eaveY);
+        ctx.lineWidth = 8; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        ctx.beginPath(); ctx.arc(ridgeX, ridgeY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#b0050f'; ctx.fill();
+
+        drawDim(ctx, ridgeX, wallY, wallX, wallY, `ระยะราบ ${run.toFixed(2)} ม.`, 40);
+        drawDim(ctx, ridgeX, ridgeY, ridgeX, wallY, `สูง ${rise.toFixed(2)}`, -30);
+        drawDim(ctx, ridgeX, ridgeY, eaveX, eaveY, `ความยาวแผ่น ${calculatedLen.toFixed(2)} ม.`, -35, '#E30613', true);
+
+        if(overhang > 0) {
+            drawDim(ctx, wallX, groundY + 30, eaveX, groundY + 30, `ชายคา ${overhang.toFixed(2)}`, 0, '#475569');
+            ctx.save(); ctx.setLineDash([2, 2]); ctx.strokeStyle = '#94a3b8';
+            ctx.beginPath(); ctx.moveTo(eaveX, eaveY); ctx.lineTo(eaveX, groundY + 30); ctx.stroke(); ctx.restore();
+        }
+
+        ctx.fillStyle = '#1e293b'; ctx.font = 'bold 14px Sarabun'; ctx.fillText(`${angle}°`, ridgeX + 45, wallY - 10);
+        ctx.beginPath(); ctx.arc(ridgeX, wallY, 35, 0, -rad, true); ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+
+    function drawRightTriangle(base, height, origBase, origHeight, sheetData) {
+        const canvas = document.getElementById('roofCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const padding = 50;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        let scaleX = (w - padding*2) / base;
+        let scaleY = (h - padding*2) / height;
+        let scale = Math.min(scaleX, scaleY);
+
+        let startX = (w - (base * scale)) / 2;
+        let bottomY = h - padding - 20;
+        
+        let cornerX = startX;
+        let cornerY = bottomY;
+        let topX = startX;
+        let topY = bottomY - (height * scale);
+        let endX = startX + (base * scale);
+        
+        ctx.beginPath();
+        ctx.moveTo(cornerX, cornerY); 
+        ctx.lineTo(cornerX, topY); 
+        ctx.lineTo(endX, cornerY); 
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+
+        drawDim(ctx, cornerX, cornerY + 20, endX, cornerY + 20, `ฐาน ${base.toFixed(2)} ม.`, 0, '#333');
+        drawDim(ctx, cornerX - 20, cornerY, cornerX - 20, topY, `สูง ${height.toFixed(2)} ม.`, 0, '#333');
+
+        if (sheetData && sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetX = startX + (sheet.x * scale);
+                let sheetW = sheet.w * scale;
+                let centerX = sheetX + sheetW/2;
+                
+                ctx.beginPath();
+                ctx.moveTo(sheetX + sheetW, bottomY);
+                ctx.lineTo(sheetX + sheetW, bottomY - (height*scale)); 
+                ctx.stroke();
+                
+                let textY = bottomY - 20 - ((index % 3) * 15);
+                ctx.fillStyle = '#d84315';
+                ctx.fillText(`#${sheet.id}`, centerX, textY);
+            });
+            ctx.restore();
+        }
+    }
+
+    function drawCurve(span, height, overhang, totalLen, radius, isStraightEaves = false) {
+        const canvas = document.getElementById('roofCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const padding = 50;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        let totalWidth = span + (overhang * 2);
+        let totalHeight = height + (height * 0.2); 
+        
+        let drawW = w - (padding * 2);
+        let drawH = h - (padding * 2);
+        let scaleX = drawW / totalWidth;
+        let scaleY = drawH / (totalHeight > 0 ? totalHeight : 1);
+        let scale = Math.min(scaleX, drawH / (height * 2)); 
+        
+        let startX = (w - (span * scale)) / 2;
+        let groundY = h - padding - 20;
+        let peakY = groundY - (height * scale);
+        
+        let leftWallX = startX;
+        let rightWallX = startX + (span * scale);
+        let wallTopY = groundY; 
+
+        // Walls
+        ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+        ctx.fillRect(leftWallX - 10, wallTopY, 10, 20); ctx.strokeRect(leftWallX - 10, wallTopY, 10, 20);
+        ctx.fillRect(rightWallX, wallTopY, 10, 20); ctx.strokeRect(rightWallX, wallTopY, 10, 20);
+
+        ctx.beginPath();
+        ctx.moveTo(leftWallX - 30, groundY + 20); ctx.lineTo(rightWallX + 30, groundY + 20);
+        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
+
+        // Calculate Center and Angles
+        let centerX = (leftWallX + rightWallX) / 2;
+        let centerY = peakY + (radius * scale); 
+        
+        let angleLeft = Math.atan2(wallTopY - centerY, leftWallX - centerX);
+        let angleRight = Math.atan2(wallTopY - centerY, rightWallX - centerX);
+
+        if (isStraightEaves) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * scale, angleLeft, angleRight);
+            ctx.lineWidth = 8; ctx.strokeStyle = '#E30613'; ctx.stroke();
+
+            let tanLeft = angleLeft - (Math.PI / 2);
+            let tanRight = angleRight + (Math.PI / 2);
+            
+            let leftEaveX = leftWallX + (Math.cos(tanLeft) * (overhang*scale / Math.abs(Math.cos(tanLeft))));
+            let leftEaveY = wallTopY + (Math.sin(tanLeft) * (overhang*scale / Math.abs(Math.cos(tanLeft))));
+
+            let rightEaveX_v = rightWallX + (Math.cos(tanRight) * (overhang*scale / Math.abs(Math.cos(tanRight))));
+            let rightEaveY_v = wallTopY + (Math.sin(tanRight) * (overhang*scale / Math.abs(Math.cos(tanRight))));
+
+            ctx.beginPath(); ctx.moveTo(leftWallX, wallTopY); ctx.lineTo(leftEaveX, leftEaveY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(rightWallX, wallTopY); ctx.lineTo(rightEaveX_v, rightEaveY_v); ctx.stroke();
+
+        } else {
+            let overhangAngle = overhang / radius;
+            let drawStart = angleLeft - overhangAngle;
+            let drawEnd = angleRight + overhangAngle;
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * scale, drawStart, drawEnd);
+            ctx.lineWidth = 8; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        }
+        
+        drawDim(ctx, leftWallX, wallTopY, rightWallX, wallTopY, `Span ${span.toFixed(2)} ม.`, 40);
+        drawDim(ctx, centerX, wallTopY, centerX, peakY, `H ${height.toFixed(2)}`, -20);
+        
+        ctx.fillStyle = '#666'; ctx.font = '12px Sarabun';
+        ctx.fillText(`R = ${radius.toFixed(2)} ม.`, centerX, centerY - (radius*scale) + 20);
+        
+        ctx.fillStyle = '#E30613'; ctx.font = 'bold 14px Sarabun';
+        ctx.fillText(`ความยาวโค้ง ${totalLen.toFixed(2)} ม.`, centerX - 60, peakY - 15);
+    }
+
+    function drawTriangle(base, height, origBase, origHeight, sheetData = []) {
+        const ctx = document.getElementById('roofCanvas').getContext('2d');
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        let scale = Math.min((w-60)/base, (h-60)/height);
+        let db = base * scale;
+        let dh = height * scale;
+        
+        let x = (w - db)/2;
+        let y = (h - dh)/2 + dh; // Bottom
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y); 
+        ctx.lineTo(x + db, y); 
+        ctx.lineTo(x + db/2, y - dh); 
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        if(origBase && origBase < base) {
+             let dOB = origBase * scale;
+             let dOH = origHeight * scale;
+             let apexX = x + db/2;
+             let apexY = y - dh;
+             
+             ctx.save();
+             ctx.setLineDash([5, 5]);
+             ctx.strokeStyle = '#555';
+             ctx.beginPath();
+             ctx.moveTo(apexX - dOB/2, apexY + dOH);
+             ctx.lineTo(apexX + dOB/2, apexY + dOH);
+             ctx.lineTo(apexX, apexY);
+             ctx.closePath();
+             ctx.stroke();
+             ctx.restore();
+             
+             drawDim(ctx, apexX - dOB/2, apexY + dOH + 10, apexX + dOB/2, apexY + dOH + 10, `ผนังเดิม ${origBase} ม.`, 0, '#666');
+        }
+        
+        drawDim(ctx, x, y+25, x+db, y+25, `ฐานรวมชายคา ${base.toFixed(2)} ม.`, 0, '#333');
+        drawDim(ctx, x+db+20, y, x+db+20, y-dh, `สูงรวม ${height.toFixed(2)} ม.`, 0, '#333');
+
+        if (sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetX = x + (sheet.x * scale);
+                let sheetW = sheet.w * scale;
+                let centerX = sheetX + sheetW/2;
+                
+                ctx.beginPath();
+                ctx.moveTo(sheetX + sheetW, y);
+                ctx.lineTo(sheetX + sheetW, y - dh); 
+                ctx.stroke();
+                
+                let textY = y - (dh * 0.2) + ((index % 3) * 25);
+                ctx.fillStyle = '#d84315';
+                ctx.fillText(`#${sheet.id}`, centerX, textY);
+            });
+            ctx.restore();
+        }
+    }
+
+    function drawTrapezoid(width, hL, hR, sheetData = []) {
+        const ctx = document.getElementById('roofCanvas').getContext('2d');
+        const w = ctx.canvas.width;
+        const h = ctx.canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        let maxHeight = Math.max(hL, hR);
+        let scale = Math.min((w-60)/width, (h-60)/maxHeight);
+        
+        let dW = width * scale;
+        let dHL = hL * scale;
+        let dHR = hR * scale;
+        
+        let x = (w - dW)/2;
+        let bottomY = (h + maxHeight*scale)/2 + 20; 
+        if(bottomY > h-30) bottomY = h-30;
+
+        // Draw Trapezoid
+        ctx.beginPath();
+        ctx.moveTo(x, bottomY); // Bottom Left
+        ctx.lineTo(x + dW, bottomY); // Bottom Right
+        ctx.lineTo(x + dW, bottomY - dHR); // Top Right
+        ctx.lineTo(x, bottomY - dHL); // Top Left
+        ctx.closePath();
+        
+        ctx.fillStyle = '#e3f2fd'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        drawDim(ctx, x, bottomY+25, x+dW, bottomY+25, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
+        drawDim(ctx, x-20, bottomY, x-20, bottomY-dHL, `L ${hL.toFixed(2)}`, 0, '#333');
+        drawDim(ctx, x+dW+20, bottomY, x+dW+20, bottomY-dHR, `R ${hR.toFixed(2)}`, 0, '#333');
+
+        // Draw Sheets
+        if (sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetX = x + (sheet.x * scale);
+                let sheetW = sheet.w * scale;
+                let centerX = sheetX + sheetW/2;
+                
+                ctx.beginPath();
+                ctx.moveTo(sheetX + sheetW, bottomY);
+                // Draw vertical line up to max height or slightly above
+                ctx.lineTo(sheetX + sheetW, bottomY - (Math.max(dHL, dHR)));
+                ctx.stroke();
+                
+                let textY = bottomY - 30 - ((index % 3) * 15);
+                ctx.fillStyle = '#d84315';
+                ctx.fillText(`#${sheet.id}`, centerX, textY);
+            });
+            ctx.restore();
+        }
+    }
+
+    function drawDim(ctx, x1, y1, x2, y2, text, offset, color = '#334155', isSlope = false) {
+        ctx.save();
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1; ctx.font = 'bold 13px Sarabun';
+        let dx = x2 - x1; let dy = y2 - y1;
+        let lineAngle = Math.atan2(dy, dx);
+        let perpAngle = lineAngle + Math.PI / 2;
+        let ox1 = x1 + Math.cos(perpAngle) * offset; let oy1 = y1 + Math.sin(perpAngle) * offset;
+        let ox2 = x2 + Math.cos(perpAngle) * offset; let oy2 = y2 + Math.sin(perpAngle) * offset;
+
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2); ctx.stroke();
+        ctx.globalAlpha = 1.0;
+        ctx.beginPath(); ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2); ctx.stroke();
+        drawArrow(ctx, ox1, oy1, lineAngle + Math.PI); drawArrow(ctx, ox2, oy2, lineAngle);
+
+        let midX = (ox1 + ox2) / 2; let midY = (oy1 + oy2) / 2;
+        let metrics = ctx.measureText(text); let p = 6;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        if(isSlope) {
+             ctx.translate(midX, midY); ctx.rotate(lineAngle);
+             ctx.roundRect(-metrics.width/2 - p, -10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
+             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
+             ctx.fillStyle = color; ctx.fillText(text, -metrics.width/2, 4);
+        } else {
+             ctx.roundRect(midX - metrics.width/2 - p, midY - 10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
+             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
+             ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, midX, midY);
+        }
+        ctx.restore();
+    }
+
+    function drawArrow(ctx, x, y, angle) {
+        let headlen = 6; ctx.save(); ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill(); ctx.restore();
+    }
+</script>
+
+</body>
+</html>

@@ -56,6 +56,7 @@
 
         .header-content h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
         .header-content .subtitle { font-size: 0.85rem; opacity: 0.9; font-weight: 300; }
+        .credit-text { font-size: 0.8rem; opacity: 0.7; font-style: italic; margin-left: 8px; border-left: 1px solid rgba(255,255,255,0.3); padding-left: 8px; }
 
         .btn-print-top {
             background-color: rgba(255, 255, 255, 0.2);
@@ -459,7 +460,7 @@
     <div class="header">
         <div class="header-content">
             <h2>🛠️ เครื่องคำนวณเมทัลชีท</h2>
-            <div class="subtitle">ระบบประเมินราคาและจำนวนแผ่น - Sangthai Metal Sheet</div>
+            <div class="subtitle">ระบบประเมินราคาและจำนวนแผ่น - Sangthai Metal Sheet <span class="credit-text">by Sarayut Boonkong</span></div>
         </div>
         <button class="btn-print-top" onclick="window.print()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
@@ -693,7 +694,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                         <div>
                             <h2 style="margin:0; color:#E30613; font-size:1.6rem;">ใบรายการคำนวณเมทัลชีท</h2>
-                            <p style="margin:5px 0 0; color:#666; font-size:0.9rem;">Sangthai Metal Sheet Calculator System</p>
+                            <p style="margin:5px 0 0; color:#666; font-size:0.9rem;">Sangthai Metal Sheet Calculator System <span style="font-style:italic;">(by Sarayut Boonkong)</span></p>
                         </div>
                         <div style="text-align:right; font-size:0.8rem; color:#888;">
                             วันที่: <span id="print-date">-</span><br>
@@ -730,7 +731,7 @@
                     <canvas id="roofCanvas"></canvas>
                 </div>
                 
-                <div class="result-grid">
+                <div class="result-grid" id="resultGrid" style="display: none;">
                     <div class="result-card highlight">
                         <span class="card-label" id="labelLength">ความยาวแผ่นตัด</span>
                         <span class="card-value primary" id="outLength">-</span>
@@ -767,7 +768,7 @@
                     <span style="font-size:1.5rem; font-weight:bold;" id="outPrice">0 บาท</span>
                 </div>
 
-                <div class="accessory-list">
+                <div class="accessory-list" id="accessoryList" style="display: none;">
                     <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบ (ประมาณการ):</strong>
                     <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
                         <li>สกรูยึดแผ่น (ยาว): <span id="outScrewMain" style="font-weight:bold;">0</span> ตัว <span id="screwMainDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
@@ -786,7 +787,7 @@
                 <div id="cuttingSheetList" class="cutting-list-container">
                     <div class="cutting-list-header">
                         <span>✂️ รายการตัดแผ่น (Cutting List)</span>
-                        <span style="font-size:0.8rem; font-weight:normal; color:#666;">(เรียงจากซ้ายไปขวา)</span>
+                        <span style="font-size:0.8rem; font-weight:normal; color:#666;" id="cutListDesc">(เรียงจากฝั่งยาวสุดไปสั้นสุด)</span>
                     </div>
                     <div style="max-height: 300px; overflow-y: auto;">
                         <table class="cutting-table">
@@ -911,6 +912,11 @@
         document.getElementById('curveGableRow').style.display = 'none';
         document.getElementById('cuttingSheetList').style.display = 'none';
         document.getElementById('cuttingFormula').style.display = 'none';
+        
+        // Hide Results until calculated
+        document.getElementById('resultGrid').style.display = 'none';
+        document.getElementById('accessoryList').style.display = 'none';
+        document.getElementById('priceRow').style.display = 'none';
         
         // Default Overhang Visible
         document.getElementById('input-overhang-container').style.display = 'block';
@@ -1043,6 +1049,7 @@
         // Reset visibility
         document.getElementById('cuttingSheetList').style.display = 'none';
         document.getElementById('cuttingFormula').style.display = 'none';
+        document.getElementById('cutListDesc').innerText = "(เรียงจากซ้ายไปขวา)";
 
         // --- CALCULATION LOGIC ---
 
@@ -1054,7 +1061,7 @@
 
             let totalHorizontalRun = run + overhang;
             let slopeLength = totalHorizontalRun * secVal;
-            totalLen = slopeLength + 0.05; 
+            totalLen = slopeLength; 
             
             geometricArea = width * slopeLength;
             
@@ -1094,31 +1101,27 @@
 
             for(let i=1; i<=sheetCount; i++) {
                 let x_start = (i-1) * sheetW;
-                let x_end = Math.min(i * sheetW, eff_base);
+                let x_end = i * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ
                 let h_max = eff_height * (1 - (x_start / eff_base));
                 // Apply secVal to the cut length
-                let cut_len = (h_max * secVal) + 0.05; 
-                if (cut_len < 0.05) cut_len = 0.05;
+                let cut_len = (h_max * secVal); 
 
                 currentTotalLen += cut_len;
 
                 let row = `<tr>
-                    <td>${i}</td>
+                    <td>L${i}</td>
                     <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
                     <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+                sheetData.push({ id: `L${i}`, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
             }
 
             totalLinearMeter = currentTotalLen;
             billableArea = totalLinearMeter * sheetW;
             
             // Flashing: Vertical(Sloped) + Base + Hypotenuse
-            // Vertical side becomes: height * secVal
-            // Base remains: base
-            // Hypotenuse becomes: sqrt(base^2 + (height*secVal)^2)
             let vertSloped = eff_height * secVal;
             let hypSloped = Math.sqrt(Math.pow(eff_base, 2) + Math.pow(vertSloped, 2));
             flashingLen = vertSloped + eff_base + hypSloped; 
@@ -1139,6 +1142,7 @@
             document.getElementById('formulaContent').innerHTML = formulaHtml;
             document.getElementById('cuttingFormula').style.display = 'block';
             document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = "(เริ่มปูแผ่นจากฝั่งซ้ายที่ยาวสุด)";
 
         } else if (currentMode === 'curve') {
             document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด (โค้ง)";
@@ -1165,9 +1169,9 @@
             if (isStraightEaves) {
                 let halfTheta = Math.asin((run/2)/R); 
                 let straightLen = overhang / Math.cos(halfTheta);
-                totalLen = arcLen + (straightLen * 2) + 0.05;
+                totalLen = arcLen + (straightLen * 2);
             } else {
-                totalLen = arcLen + (overhang * 2) + 0.05; 
+                totalLen = arcLen + (overhang * 2); 
             }
             
             geometricArea = width * totalLen;
@@ -1206,8 +1210,6 @@
             let areaReal = areaPlan * secVal; 
             geometricArea = areaReal;
             
-            sheetCount = Math.ceil(eff_b / sheetW);
-            
             let sidePlan = Math.sqrt(Math.pow(eff_b/2, 2) + Math.pow(eff_h, 2));
             let sideReal = sidePlan; 
             if(angle > 0) {
@@ -1221,31 +1223,51 @@
             let sheetData = []; 
             
             let center = eff_b / 2;
-            for(let i=1; i<=sheetCount; i++) {
-                let x_start = (i-1) * sheetW;
-                let x_end = Math.min(i * sheetW, eff_b);
-                let h_max = 0;
+            let sheetCountHalf = Math.ceil(center / sheetW);
+            sheetCount = sheetCountHalf * 2; // ยอดรวมแผ่นซ้าย-ขวา
+            
+            // สร้างรายการแผ่นฝั่งซ้าย (วาดจากซ้ายสุด มาตรงกลาง เพื่อให้เรียงตามแกน X)
+            for(let j = sheetCountHalf; j >= 1; j--) {
+                let x_end = center - (j-1) * sheetW;
+                let x_start = center - j * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ (อาจติดลบเลยขอบหลังคา)
                 
-                if (x_start <= center && x_end >= center) {
-                    h_max = eff_h;
-                } else {
-                    let h_start = (x_start <= center) ? (eff_h/center)*x_start : (eff_h/center)*(eff_b - x_start);
-                    let h_end = (x_end <= center) ? (eff_h/center)*x_end : (eff_h/center)*(eff_b - x_end);
-                    h_max = Math.max(h_start, h_end);
-                }
-                
-                let cut_len = (h_max * secVal) + 0.05; 
+                // ความสูงสูงสุดของแผ่นฝั่งซ้าย จะอยู่ทางด้านขวาของแผ่นเสมอ (ยิ่งใกล้กลางยิ่งสูง)
+                let h_max = (eff_h / center) * x_end; 
+                let cut_len = (h_max * secVal); 
                 
                 currentTotalLen += cut_len;
 
+                let label = "L" + j;
                 let row = `<tr>
-                    <td>${i}</td>
+                    <td>${label}</td>
                     <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
                     <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
+            }
+            
+            // สร้างรายการแผ่นฝั่งขวา (จากตรงกลาง ไปขวาสุด)
+            for(let i = 1; i <= sheetCountHalf; i++) {
+                let x_start = center + (i-1) * sheetW;
+                let x_end = center + i * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ (อาจเลยขอบหลังคา)
+                
+                // ความสูงสูงสุดของแผ่นฝั่งขวา จะอยู่ทางด้านซ้ายของแผ่นเสมอ
+                let h_max = (eff_h / center) * (eff_b - x_start); 
+                let cut_len = (h_max * secVal); 
+                
+                currentTotalLen += cut_len;
+
+                let label = "R" + i;
+                let row = `<tr>
+                    <td>${label}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
             }
             
             totalLinearMeter = currentTotalLen;
@@ -1268,6 +1290,7 @@
             document.getElementById('formulaContent').innerHTML = formulaHtml;
             document.getElementById('cuttingFormula').style.display = 'block';
             document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = "(ปูแผ่นเริ่มจากจุดกึ่งกลาง)";
 
         } else if (currentMode === 'trapezoid') {
             document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
@@ -1288,27 +1311,39 @@
             let currentTotalLen = 0;
             let sheetData = [];
 
+            // ตัดสินใจว่าฝั่งไหนยาวกว่า ให้เริ่มปูแผ่นจากฝั่งนั้น
+            let layFromRight = hR > hL;
+            let listHeader = layFromRight ? "R" : "L";
+
             for(let i=1; i<=sheetCount; i++) {
-                let x_start = (i-1) * sheetW;
-                let x_end = Math.min(i * sheetW, width);
+                let x_start, x_end;
+                
+                if (layFromRight) {
+                    x_end = width - (i-1) * sheetW;
+                    x_start = width - i * sheetW; // อาจติดลบเมื่อเลยขอบซ้าย
+                } else {
+                    x_start = (i-1) * sheetW;
+                    x_end = i * sheetW; // อาจเกิน width เมื่อเลยขอบขวา
+                }
                 
                 let y_start = hL + (hR - hL) * (x_start / width);
-                let y_end = hL + (hR - hL) * (x_end / width);
+                let y_end = hL + (hR - hL) * (x_end / width); 
                 
                 let h_max = Math.max(y_start, y_end);
                 // Apply secVal to cut length
-                let cut_len = (h_max * secVal) + 0.05;
+                let cut_len = (h_max * secVal);
 
                 currentTotalLen += cut_len;
 
+                let label = listHeader + i;
                 let row = `<tr>
-                    <td>${i}</td>
+                    <td>${label}</td>
                     <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
                     <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: i, x: x_start, w: x_end - x_start, len: cut_len });
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
             }
 
             totalLinearMeter = currentTotalLen;
@@ -1323,14 +1358,18 @@
             document.getElementById('print-run').innerText = `L=${hL} / R=${hR}`;
             document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
             
+            let dirText = layFromRight ? "ขวาไปซ้าย (R)" : "ซ้ายไปขวา (L)";
             let formulaHtml = `
                 <div class="formula-line"><span>1. ตัวคูณองศา (${angle}°):</span> <span class="formula-val">Sec(${angle}°) = ${secVal.toFixed(4)}</span></div>
                 <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${width} × (${hL}+${hR})/2 × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
                 <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line" style="margin-top:10px;"><span style="color:var(--primary-color); font-weight:bold;">* ทิศทางการปูแผ่น:</span> <span class="formula-val" style="color:var(--primary-color);">เริ่มจาก${dirText} (ฝั่งที่ยาวกว่า)</span></div>
             `;
             document.getElementById('formulaContent').innerHTML = formulaHtml;
             document.getElementById('cuttingFormula').style.display = 'block';
             document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = `(ปูแผ่นเริ่มจากฝั่ง${layFromRight ? 'ขวา' : 'ซ้าย'}ที่ยาวสุด)`;
+
         } else if (currentMode === 'irregular') {
             document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
             let width = parseFloat(document.getElementById('irrWidth').value) || 0;
@@ -1342,13 +1381,6 @@
             if(width === 0) { showWarning("⚠️ กรุณากรอกความกว้าง"); return; }
 
             // Irregular logic
-            // Area calculation via integration (Trapezoidal rule approx)
-            // Average height = (hTL + hTR + hBL + hBR) / 4 ??
-            // Actually area = Area under Top - Area under Bottom
-            // Area under Top = Width * (hTL + hTR) / 2
-            // Area under Bottom = Width * (hBL + hBR) / 2
-            // Plan Area = Width * ((hTL + hTR) - (hBL + hBR)) / 2
-            
             let areaPlan = width * ((hTL + hTR) - (hBL + hBR)) / 2;
             geometricArea = areaPlan * secVal;
 
@@ -1359,9 +1391,22 @@
             let currentTotalLen = 0;
             let sheetData = [];
 
+            // ตรวจสอบความยาวฝั่งซ้าย vs ฝั่งขวา
+            let leftHeight = hTL - hBL;
+            let rightHeight = hTR - hBR;
+            let layFromRight = rightHeight > leftHeight;
+            let listHeader = layFromRight ? "R" : "L";
+
             for(let i=1; i<=sheetCount; i++) {
-                let x_start = (i-1) * sheetW;
-                let x_end = Math.min(i * sheetW, width);
+                let x_start, x_end;
+                
+                if (layFromRight) {
+                    x_end = width - (i-1) * sheetW;
+                    x_start = width - i * sheetW;
+                } else {
+                    x_start = (i-1) * sheetW;
+                    x_end = i * sheetW;
+                }
                 
                 // Interpolate Y Top and Y Bottom
                 let yt_start = hTL + (hTR - hTL) * (x_start / width);
@@ -1370,36 +1415,26 @@
                 let yb_start = hBL + (hBR - hBL) * (x_start / width);
                 let yb_end = hBL + (hBR - hBL) * (x_end / width);
                 
-                // Length at start and end of sheet
-                let len_start = yt_start - yb_start;
-                let len_end = yt_end - yb_end;
-                
-                // Cut length must cover the max span required in this strip
-                // Usually Max(yt) - Min(yb)? 
-                // Or simply max(len_start, len_end)?
-                // If the top and bottom slopes are parallel, len is const.
-                // If they diverge, len changes.
-                // Conservative cut: Max Top Y in interval - Min Bottom Y in interval
-                
                 let y_top_max = Math.max(yt_start, yt_end);
                 let y_bot_min = Math.min(yb_start, yb_end);
                 
                 let raw_len = y_top_max - y_bot_min;
-                let cut_len = (raw_len * secVal) + 0.05;
+                let cut_len = (raw_len * secVal);
 
                 currentTotalLen += cut_len;
 
+                let label = listHeader + i;
                 let row = `<tr>
-                    <td>${i}</td>
+                    <td>${label}</td>
                     <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
                     <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
                 </tr>`;
                 tbody.innerHTML += row;
                 
                 sheetData.push({ 
-                    id: i, 
+                    id: label, 
                     x: x_start, 
-                    w: x_end - x_start, 
+                    w: sheetW, // บันทึกเป็นระยะแผ่นเต็ม
                     len: cut_len,
                     yTop: y_top_max, // For drawing
                     yBot: y_bot_min
@@ -1419,14 +1454,18 @@
             document.getElementById('print-width').innerText = `${width} (กว้าง)`;
             document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
             
+            let dirText = layFromRight ? "ขวาไปซ้าย (R)" : "ซ้ายไปขวา (L)";
             let formulaHtml = `
                 <div class="formula-line"><span>1. ตัวคูณองศา (${angle}°):</span> <span class="formula-val">Sec(${angle}°) = ${secVal.toFixed(4)}</span></div>
                 <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
                 <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">ความยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line" style="margin-top:10px;"><span style="color:var(--primary-color); font-weight:bold;">* ทิศทางการปูแผ่น:</span> <span class="formula-val" style="color:var(--primary-color);">เริ่มจาก${dirText} (ฝั่งที่ยาวกว่า)</span></div>
             `;
             document.getElementById('formulaContent').innerHTML = formulaHtml;
             document.getElementById('cuttingFormula').style.display = 'block';
             document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = `(ปูแผ่นเริ่มจากฝั่ง${layFromRight ? 'ขวา' : 'ซ้าย'}ที่ยาวสุด)`;
+
         } else if (currentMode === 'parallelogram') {
             document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด";
             let width = parseFloat(document.getElementById('paraWidth').value) || 0;
@@ -1435,40 +1474,63 @@
 
             if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกขนาดให้ครบถ้วน"); return; }
 
-            // Parallelogram logic
-            // It acts like a slope roof but side flashings are longer.
-            // All sheets have same cut length = SlopeLength
-            
             let totalHorizontalRun = run + overhang;
             let slopeLength = totalHorizontalRun * secVal;
-            totalLen = slopeLength + 0.05;
-            
+            totalLen = slopeLength;
             geometricArea = width * slopeLength;
             
             sheetCount = Math.ceil(width / sheetW);
-            totalLinearMeter = totalLen * sheetCount;
+            
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = [];
+
+            // สำหรับสี่เหลี่ยมด้านขนาน แผ่นทุกแผ่นยาวเท่ากันทั้งหมด
+            // เช็ค skew ว่าฝั่งไหนเอียงไปรับก่อน ให้ถือว่าเป็นฝั่งเริ่มต้น เพื่อความสวยงาม
+            let layFromRight = skew < 0; 
+            let listHeader = layFromRight ? "R" : "L";
+
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start, x_end;
+                if (layFromRight) {
+                    x_end = width - (i-1) * sheetW;
+                    x_start = width - i * sheetW;
+                } else {
+                    x_start = (i-1) * sheetW;
+                    x_end = i * sheetW;
+                }
+                
+                let cut_len = slopeLength;
+                currentTotalLen += cut_len;
+
+                let label = listHeader + i;
+                let row = `<tr>
+                    <td>${label}</td>
+                    <td>${x_start.toFixed(2)} - ${x_end.toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len });
+            }
+
+            totalLinearMeter = currentTotalLen;
             billableArea = totalLinearMeter * sheetW;
             
-            // Flashing: Width + Width + 2 * SkewedSideLength
-            // SkewedSideLength in 3D:
-            // Plan Side Length = sqrt(Run^2 + Skew^2)
-            // Real Side Length = sqrt((Run*secVal)^2 + Skew^2) -- Wait.
-            // If slope is along Run:
-            // Vertical Rise = Run * tan(angle).
-            // 3D Distance = sqrt( PlanRun^2 + PlanSkew^2 + Rise^2 )
-            // = sqrt( Run^2 + Skew^2 + (Run*tan)^2 )
-            // = sqrt( Run^2(1+tan^2) + Skew^2 )
-            // = sqrt( (Run*sec)^2 + Skew^2 )
             let realSideLen = Math.sqrt(Math.pow(totalHorizontalRun * secVal, 2) + Math.pow(skew, 2));
-            
-            flashingLen = (width * 2) + (realSideLen * 2); // Assuming top/bottom flashing + 2 sides
+            flashingLen = (width * 2) + (realSideLen * 2); 
 
-            drawParallelogram(width, run, skew, overhang);
+            drawParallelogram(width, run, skew, overhang, sheetData);
             
             document.getElementById('print-type').innerText = "สี่เหลี่ยมด้านขนาน";
             document.getElementById('print-slope-h').innerText = `${angle}°`;
             document.getElementById('print-width').innerText = `${width} (กว้าง)`;
             document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+
+            document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = `(ปูแผ่นเริ่มจากฝั่ง${layFromRight ? 'ขวา' : 'ซ้าย'})`;
+
         } else if (currentMode === 'polygon') {
             document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
             
@@ -1500,19 +1562,39 @@
             let width = maxX - minX;
             sheetCount = Math.ceil(width / sheetW);
             
-            // Calculate Cuts: Bounding Box approximation for now?
-            // To be accurate, we need to scanline each sheet strip.
-            // Bounding Box Height = maxY - minY
-            // Simple approach: Each sheet length is the full height of the polygon at that X interval.
-            // But since this is a "Simple" polygon mode, let's use Bounding Box Height for Billable Estimate
-            // Or calculate Billable Area = SheetCount * BoundingBoxHeight * secVal?
-            // This is safest (buying rectangles to cover shape).
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let currentTotalLen = 0;
+            let sheetData = [];
+
+            // คำนวณหาระยะความยาวแต่ละแผ่นตามพิกัดที่ตกกระทบ
+            for(let i=1; i<=sheetCount; i++) {
+                let x_start = minX + (i-1) * sheetW;
+                let x_end = minX + i * sheetW;
+                
+                let bounds = getPolygonYBoundsInInterval(polygonPoints, x_start, x_end);
+                
+                let cut_len = bounds.length * secVal;
+                currentTotalLen += cut_len;
+
+                let row = `<tr>
+                    <td>L${i}</td>
+                    <td>${(x_start - minX).toFixed(2)} - ${(x_end - minX).toFixed(2)}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${cut_len.toFixed(2)}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                
+                sheetData.push({ 
+                    id: `L${i}`, 
+                    x: x_start, 
+                    w: sheetW, 
+                    len: cut_len,
+                    yMin: bounds.yMin,
+                    yMax: bounds.yMax
+                });
+            }
             
-            let boundingHeight = maxY - minY;
-            // Adjust length by slope? Slope is usually along Y axis.
-            let sheetLen = (boundingHeight * secVal) + 0.05;
-            
-            totalLinearMeter = sheetCount * sheetLen; // Conservative estimate (Rectangular bounding coverage)
+            totalLinearMeter = currentTotalLen; 
             billableArea = totalLinearMeter * sheetW;
             
             // Flashing: Perimeter
@@ -1521,12 +1603,6 @@
                 let j = (i + 1) % polygonPoints.length;
                 let p1 = polygonPoints[i];
                 let p2 = polygonPoints[j];
-                // Distance in Plan
-                let dPlan = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-                // Distance Real (if slope along Y)
-                // dy = p2.y - p1.y
-                // dx = p2.x - p1.x
-                // dReal = sqrt(dx^2 + (dy*sec)^2)
                 let dy = Math.abs(p2.y - p1.y);
                 let dx = Math.abs(p2.x - p1.x);
                 let dReal = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy * secVal, 2));
@@ -1534,27 +1610,33 @@
             }
             flashingLen = perimeter;
             
-            drawPolygon(polygonPoints);
+            drawPolygon(polygonPoints, sheetData);
             
             document.getElementById('print-type').innerText = "หลายเหลี่ยม (พิกัด)";
             document.getElementById('print-slope-h').innerText = `${angle}°`;
             document.getElementById('print-width').innerText = `${width.toFixed(2)} (กว้างรวม)`;
-            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม. (โดยประมาณ)";
+            document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
             
             let formulaHtml = `
                 <div class="formula-line"><span>1. พื้นที่ระนาบ (Plan Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} ตร.ม.</span></div>
                 <div class="formula-line"><span>2. พื้นที่จริง (Real Area):</span> <span class="formula-val">${areaPlan.toFixed(2)} × ${secVal.toFixed(3)} = ${geometricArea.toFixed(2)} ตร.ม.</span></div>
-                <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">คำนวณจากกรอบสี่เหลี่ยมคลุม (Bounding Box) เพื่อเผื่อตัด = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+                <div class="formula-line"><span>3. พื้นที่ขาย (Billable):</span> <span class="formula-val">รวมความยาวแผ่นจริง (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
             `;
             document.getElementById('formulaContent').innerHTML = formulaHtml;
             document.getElementById('cuttingFormula').style.display = 'block';
+            document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = "(ประเมินการปูแผ่นจากซ้ายสุดไปขวาสุด)";
         }
 
         // --- FINAL CALCULATIONS ---
         
         let totalPrice = totalLinearMeter * price;
-        let mainScrews = Math.ceil(billableArea * 3.5); 
-        let flashScrews = Math.ceil(flashingLen * 4);
+        let mainScrews = Math.ceil(totalLinearMeter * 4); 
+        let flashScrews = Math.ceil(flashingLen * 3.5);
+
+        // Show Results Area
+        document.getElementById('resultGrid').style.display = 'grid';
+        document.getElementById('accessoryList').style.display = 'block';
 
         // OUTPUTS
         document.getElementById('outCount').innerText = sheetCount + " แผ่น";
@@ -1562,7 +1644,7 @@
         document.getElementById('outAreaReal').innerText = geometricArea.toFixed(2);
         
         document.getElementById('outScrewMain').innerText = mainScrews;
-        document.getElementById('screwMainDetail').innerText = `(${billableArea.toFixed(1)} ตร.ม.)`;
+        document.getElementById('screwMainDetail').innerText = `(รวมความยาว ${totalLinearMeter.toFixed(2)} ม.)`;
         document.getElementById('outScrewFlash').innerText = flashScrews;
         document.getElementById('outFlash').innerText = flashingLen.toFixed(2);
         
@@ -1601,7 +1683,7 @@
         ctx.restore();
     }
     
-    function drawPolygon(points) {
+    function drawPolygon(points, sheetData = []) {
         const ctx = document.getElementById('roofCanvas').getContext('2d');
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
@@ -1646,6 +1728,43 @@
         ctx.fillStyle = '#e3f2fd'; ctx.fill();
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
+        // Draw Sheets inside polygon
+        if (sheetData && sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetCanvasX = startX + (sheet.x - minX) * scale;
+                let sheetCanvasW = sheet.w * scale;
+                let lineX = sheetCanvasX + sheetCanvasW;
+                
+                // Constrain drawing line within bounding box
+                if (lineX > startX + drawW) lineX = startX + drawW;
+                
+                if (sheet.len > 0) {
+                    let yTopCanvas = startY + (sheet.yMin - minY) * scale;
+                    let yBotCanvas = startY + (sheet.yMax - minY) * scale;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lineX, yTopCanvas);
+                    ctx.lineTo(lineX, yBotCanvas);
+                    ctx.stroke();
+                    
+                    let centerX = sheetCanvasX + sheetCanvasW/2;
+                    if (centerX > startX + drawW) centerX = startX + drawW - 10;
+                    
+                    let textY = yBotCanvas + 15 + ((index % 3) * 12);
+                    ctx.fillStyle = '#d84315';
+                    ctx.fillText(sheet.id, centerX, textY);
+                }
+            });
+            ctx.restore();
+        }
+
         // Draw Points and Indexes
         ctx.fillStyle = '#333';
         ctx.font = '12px Sarabun';
@@ -1670,24 +1789,12 @@
         drawGrid(ctx, w, h);
         
         let maxH = Math.max(hTL, hTR);
-        // Assuming bottom heights are usually smaller or 0, but max(hBL, hBR) determines total bounding height if drawn from 0?
-        // Coordinate system: y goes down.
-        // Let's assume hBL/hBR are heights from ground (0).
-        // Total height span = Max(Top) - Min(Bot)?
-        // Or simply Max(Top).
         
         let scale = Math.min((w-60)/width, (h-60)/maxH);
-        
         let dW = width * scale;
         
         let x = (w - dW)/2;
         let groundY = h - 30; // Ground line
-        
-        // Coordinates relative to groundY (going up)
-        // BL: (x, groundY - hBL*scale)
-        // BR: (x+dW, groundY - hBR*scale)
-        // TL: (x, groundY - hTL*scale)
-        // TR: (x+dW, groundY - hTR*scale)
         
         let yBL = groundY - (hBL * scale);
         let yBR = groundY - (hBR * scale);
@@ -1706,8 +1813,9 @@
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
         drawDim(ctx, x, groundY+20, x+dW, groundY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
-        drawDim(ctx, x-20, yBL, x-20, yTL, `L ${hTL.toFixed(2)}`, 0, '#333');
-        drawDim(ctx, x+dW+20, yBR, x+dW+20, yTR, `R ${hTR.toFixed(2)}`, 0, '#333');
+        // แก้ไขให้แสดงความยาวจริงของด้าน (Top - Bottom)
+        drawDim(ctx, x-20, yBL, x-20, yTL, `L ${(hTL - hBL).toFixed(2)}`, 0, '#333');
+        drawDim(ctx, x+dW+20, yBR, x+dW+20, yTR, `R ${(hTR - hBR).toFixed(2)}`, 0, '#333');
 
         // Draw Sheets
         if (sheetData.length > 0) {
@@ -1718,40 +1826,48 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
+            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
+            
             sheetData.forEach((sheet, index) => {
                 let sheetX = x + (sheet.x * scale);
                 let sheetW = sheet.w * scale;
                 let centerX = sheetX + sheetW/2;
                 
-                // Draw sheet vertical bar from calculated max top to min bot
-                // Note: sheet.yTop and sheet.yBot are height values, need to convert to canvas coords
-                let sheetYTop = groundY - (sheet.yTop * scale);
-                let sheetYBot = groundY - (sheet.yBot * scale);
+                // เส้นต่อแผ่นจะอยู่ซ้ายสุดของแผ่นถ้ามาจากขวา หรือขวาสุดถ้ามาจากซ้าย
+                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                
+                // คำนวณขอบเขตให้อยู่แต่ในกรอบของทรงสี่เหลี่ยมด้านไม่เท่าพอดี
+                let relX = (lineX - x) / scale;
+                if (relX > width) relX = width;
+                if (relX < 0) relX = 0;
+                
+                let actualLineX = x + (relX * scale);
+                let yt = hTL + (hTR - hTL) * (relX / width);
+                let yb = hBL + (hBR - hBL) * (relX / width);
                 
                 ctx.beginPath();
-                ctx.moveTo(sheetX + sheetW, sheetYBot);
-                ctx.lineTo(sheetX + sheetW, sheetYTop); 
+                ctx.moveTo(actualLineX, groundY - (yb * scale)); 
+                ctx.lineTo(actualLineX, groundY - (yt * scale)); 
                 ctx.stroke();
                 
-                let textY = sheetYBot - 20 - ((index % 3) * 15);
+                let textY = groundY - (yb * scale) - 20 - ((index % 3) * 15);
                 ctx.fillStyle = '#d84315';
-                ctx.fillText(`#${sheet.id}`, centerX, textY);
+                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
+                ctx.fillText(label, centerX, textY);
             });
             ctx.restore();
         }
     }
 
-    function drawParallelogram(width, run, skew, overhang) {
+    function drawParallelogram(width, run, skew, overhang, sheetData = []) {
         const ctx = document.getElementById('roofCanvas').getContext('2d');
         const w = ctx.canvas.width;
         const h = ctx.canvas.height;
         ctx.clearRect(0, 0, w, h);
         drawGrid(ctx, w, h);
         
-        // Draw Top View
-        // Skew shifts the top edge relative to bottom edge
-        let totalRun = run + overhang; // Use run + overhang for visual
-        let maxW = width + Math.abs(skew); // Bounding box width
+        let totalRun = run + overhang; 
+        let maxW = width + Math.abs(skew); 
         
         let scale = Math.min((w-60)/maxW, (h-60)/totalRun);
         
@@ -1760,16 +1876,10 @@
         let dSkew = skew * scale;
         
         let startX = (w - (dW + Math.abs(dSkew))) / 2;
-        if(dSkew < 0) startX += Math.abs(dSkew); // Shift right if skew is negative
+        if(dSkew < 0) startX += Math.abs(dSkew); 
         
         let topY = (h - dRun) / 2;
         let botY = topY + dRun;
-        
-        // Coords
-        // Top Left: (startX + dSkew, topY)
-        // Top Right: (startX + dSkew + dW, topY)
-        // Bot Left: (startX, botY)
-        // Bot Right: (startX + dW, botY)
         
         ctx.beginPath();
         ctx.moveTo(startX + dSkew, topY);
@@ -1780,6 +1890,45 @@
         
         ctx.fillStyle = '#e3f2fd'; ctx.fill();
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
+        
+        // Draw Sheets
+        if (sheetData.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 1;
+            ctx.font = '10px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
+            
+            sheetData.forEach((sheet, index) => {
+                let sheetX = startX + (sheet.x * scale);
+                let sheetW = sheet.w * scale;
+                let centerX = sheetX + sheetW/2;
+                
+                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                
+                // ขีดเส้นแบ่งให้พอดีกับกรอบ
+                let relX = (lineX - startX) / scale;
+                if (relX > width) relX = width;
+                if (relX < 0) relX = 0;
+                
+                let actualLineX = startX + (relX * scale);
+                
+                ctx.beginPath();
+                ctx.moveTo(actualLineX, botY);
+                // เส้นที่เฉียงขึ้นไปด้านบนตามมุม Skew
+                ctx.lineTo(actualLineX + dSkew, topY);
+                ctx.stroke();
+                
+                let textY = botY - 30 - ((index % 3) * 15);
+                ctx.fillStyle = '#d84315';
+                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
+                ctx.fillText(label, centerX + dSkew/2, textY);
+            });
+            ctx.restore();
+        }
         
         // Dimensions
         drawDim(ctx, startX, botY+20, startX+dW, botY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
@@ -1913,14 +2062,23 @@
                 let sheetW = sheet.w * scale;
                 let centerX = sheetX + sheetW/2;
                 
+                // คำนวณเส้นแบ่งแผ่นให้ไม่ทะลุขอบ
+                let lineX = sheetX + sheetW;
+                let relX = (lineX - startX) / scale;
+                if (relX > base) relX = base;
+                if (relX < 0) relX = 0;
+                
+                let actualLineX = startX + (relX * scale);
+                let yt = height * (1 - (relX / base));
+                
                 ctx.beginPath();
-                ctx.moveTo(sheetX + sheetW, bottomY);
-                ctx.lineTo(sheetX + sheetW, bottomY - (height*scale)); 
+                ctx.moveTo(actualLineX, bottomY);
+                ctx.lineTo(actualLineX, bottomY - (yt * scale)); 
                 ctx.stroke();
                 
                 let textY = bottomY - 20 - ((index % 3) * 15);
                 ctx.fillStyle = '#d84315';
-                ctx.fillText(`#${sheet.id}`, centerX, textY);
+                ctx.fillText(sheet.id, centerX, textY);
             });
             ctx.restore();
         }
@@ -2067,14 +2225,32 @@
                 let sheetW = sheet.w * scale;
                 let centerX = sheetX + sheetW/2;
                 
+                let lineX = sheet.id.toString().startsWith('R') ? sheetX : (sheetX + sheetW);
+                
+                // คำนวณความสูงตามทรงหน้าจั่วให้พอดีขอบ
+                let relX = (lineX - x) / scale;
+                if (relX > base) relX = base;
+                if (relX < 0) relX = 0;
+                
+                let actualLineX = x + (relX * scale);
+                let yt;
+                if (relX <= base/2) {
+                    yt = height * (relX / (base/2));
+                } else {
+                    yt = height * ((base - relX) / (base/2));
+                }
+                
                 ctx.beginPath();
-                ctx.moveTo(sheetX + sheetW, y);
-                ctx.lineTo(sheetX + sheetW, y - dh); 
+                ctx.moveTo(actualLineX, y);
+                ctx.lineTo(actualLineX, y - (yt * scale)); 
                 ctx.stroke();
                 
                 let textY = y - (dh * 0.2) + ((index % 3) * 25);
                 ctx.fillStyle = '#d84315';
-                ctx.fillText(`#${sheet.id}`, centerX, textY);
+                
+                // ตัดเครื่องหมาย # ออกหากชื่อแผ่นถูกขึ้นต้นด้วย L หรือ R อยู่แล้ว
+                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
+                ctx.fillText(label, centerX, textY);
             });
             ctx.restore();
         }
@@ -2122,20 +2298,33 @@
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
+            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
+            
             sheetData.forEach((sheet, index) => {
                 let sheetX = x + (sheet.x * scale);
                 let sheetW = sheet.w * scale;
                 let centerX = sheetX + sheetW/2;
                 
+                // เส้นขอบแผ่น: ถ้าปูจากขวามาซ้าย ให้ตีเส้นขอบซ้ายของแผ่น, ถ้าจากซ้าย ให้ตีเส้นขวา
+                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                
+                // ปรับให้เส้นหยุดพอดีกับขอบบน
+                let relX = (lineX - x) / scale;
+                if (relX > width) relX = width;
+                if (relX < 0) relX = 0;
+                
+                let actualLineX = x + (relX * scale);
+                let yt = hL + (hR - hL) * (relX / width);
+                
                 ctx.beginPath();
-                ctx.moveTo(sheetX + sheetW, bottomY);
-                // Draw vertical line up to max height or slightly above
-                ctx.lineTo(sheetX + sheetW, bottomY - (Math.max(dHL, dHR)));
+                ctx.moveTo(actualLineX, bottomY);
+                ctx.lineTo(actualLineX, bottomY - (yt * scale));
                 ctx.stroke();
                 
                 let textY = bottomY - 30 - ((index % 3) * 15);
                 ctx.fillStyle = '#d84315';
-                ctx.fillText(`#${sheet.id}`, centerX, textY);
+                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
+                ctx.fillText(label, centerX, textY);
             });
             ctx.restore();
         }
@@ -2180,6 +2369,44 @@
         ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
         ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
         ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill(); ctx.restore();
+    }
+    
+    // Helper function สำหรับค้นหาความสูงสูงสุดของรูปหลายเหลี่ยมในแต่ละช่วงหน้ากว้างแผ่น
+    function getPolygonYBoundsInInterval(points, x_start, x_end) {
+        let minY = Infinity;
+        let maxY = -Infinity;
+
+        // เช็คว่ามีจุดพิกัดใดตกอยู่ในช่วง X นี้หรือไม่
+        for (let p of points) {
+            if (p.x >= x_start && p.x <= x_end) {
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            }
+        }
+
+        // เช็คจุดตัดระหว่างเส้นขอบของรูปหลายเหลี่ยม กับเส้นแบ่งซ้าย-ขวาของแผ่น
+        for (let i = 0; i < points.length; i++) {
+            let p1 = points[i];
+            let p2 = points[(i + 1) % points.length];
+            
+            if (p1.x === p2.x) continue; // ข้ามเส้นแนวตั้ง
+
+            // ตัดเส้นซ้าย (x_start)
+            if ((p1.x <= x_start && p2.x >= x_start) || (p2.x <= x_start && p1.x >= x_start)) {
+                let y = p1.y + (p2.y - p1.y) * (x_start - p1.x) / (p2.x - p1.x);
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+            // ตัดเส้นขวา (x_end)
+            if ((p1.x <= x_end && p2.x >= x_end) || (p2.x <= x_end && p1.x >= x_end)) {
+                let y = p1.y + (p2.y - p1.y) * (x_end - p1.x) / (p2.x - p1.x);
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+        
+        if (minY === Infinity || maxY === -Infinity) return { yMin: 0, yMax: 0, length: 0 };
+        return { yMin: minY, yMax: maxY, length: Math.abs(maxY - minY) }; 
     }
 </script>
 

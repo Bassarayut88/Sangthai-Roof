@@ -1631,7 +1631,7 @@
         // --- FINAL CALCULATIONS ---
         
         let totalPrice = totalLinearMeter * price;
-        let mainScrews = Math.ceil(totalLinearMeter * 4); 
+        let mainScrews = Math.ceil(billableArea * 4); 
         let flashScrews = Math.ceil(flashingLen * 3.5);
 
         // Show Results Area
@@ -1644,7 +1644,7 @@
         document.getElementById('outAreaReal').innerText = geometricArea.toFixed(2);
         
         document.getElementById('outScrewMain').innerText = mainScrews;
-        document.getElementById('screwMainDetail').innerText = `(รวมความยาว ${totalLinearMeter.toFixed(2)} ม.)`;
+        document.getElementById('screwMainDetail').innerText = `(${billableArea.toFixed(2)} ตร.ม.)`;
         document.getElementById('outScrewFlash').innerText = flashScrews;
         document.getElementById('outFlash').innerText = flashingLen.toFixed(2);
         

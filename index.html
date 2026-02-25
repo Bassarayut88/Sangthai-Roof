@@ -508,6 +508,10 @@
                         <input type="radio" name="roofType" value="polygon">
                         8. หลายเหลี่ยม (พิกัด)
                     </label>
+                    <label class="type-option" id="opt-crimpCurve" onclick="toggleRoofType('crimpCurve')">
+                        <input type="radio" name="roofType" value="crimpCurve">
+                        9. ย้ำโค้ง (Awning)
+                    </label>
                 </div>
             </div>
 
@@ -634,7 +638,7 @@
                 </div>
             </div>
             
-             <!-- Polygon Inputs (Custom Coords) -->
+            <!-- Polygon Inputs (Custom Coords) -->
             <div id="inputs-polygon" style="display:none;">
                 <label style="margin-top:5px; margin-bottom:5px; font-weight:bold;">2. กำหนดจุดพิกัด (X, Y)</label>
                 <div style="display:grid; grid-template-columns: 1fr 1fr 80px; gap:8px; margin-bottom:5px;">
@@ -646,6 +650,40 @@
                      <div style="padding:10px; text-align:center; color:#999; font-size:0.9rem;">ยังไม่มีจุดพิกัด</div>
                 </div>
                 <button class="btn-small" onclick="clearPoints()" style="margin-top:5px; width:100%; color:red;">ล้างค่าทั้งหมด</button>
+            </div>
+
+            <!-- Crimp Curve Inputs -->
+            <div id="inputs-crimpCurve" style="display:none;">
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>หลังสูง (ม.)</label>
+                        <input type="number" id="cc_backHeight" value="0.60" step="0.01">
+                    </div>
+                    <div>
+                        <label>สูงหน้าโค้ง (ม.)</label>
+                        <input type="number" id="cc_curveHeight" value="0.18" step="0.01">
+                    </div>
+                    <div>
+                        <label>ฐานโค้ง (ม.)</label>
+                        <input type="number" id="cc_curveBase" value="0.20" step="0.01">
+                    </div>
+                    <div>
+                        <label>ชายหน้าตก (ม.)</label>
+                        <input type="number" id="cc_frontOverhang" value="0.10" step="0.01">
+                    </div>
+                    <div>
+                        <label>ชายหลัง (ม.)</label>
+                        <input type="number" id="cc_backOverhang" value="0.03" step="0.01">
+                    </div>
+                    <div>
+                        <label>แป+ (ม.)</label>
+                        <input type="number" id="cc_purlinPlus" value="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="text-blue-600" style="color: #2563eb;">ระยะห่างย้ำ (ซม.) <span style="font-weight:normal;color:#ef4444;font-size:0.8rem;">*ขั้นต่ำ 1.7</span></label>
+                    <input type="number" id="cc_crimpSpacing" value="2.5" step="0.1" style="background-color:#eff6ff; border-color:#93c5fd; font-weight:bold; color:#1e3a8a;">
+                </div>
             </div>
             
             <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -812,7 +850,7 @@
 
 <script>
     let calcData = { calculated: false, profileName: "", length: 0, count: 0, area: 0, screws: 0, flashing: 0, price: 0, angle: 0, isCurve: false };
-    let currentMode = 'slope'; // slope, rightTri, curve, triangle, trapezoid, irregular, parallelogram, polygon
+    let currentMode = 'slope'; // slope, rightTri, curve, triangle, trapezoid, irregular, parallelogram, polygon, crimpCurve
     let isCurvedMode = false;
     let curveCalcMode = 'h'; // 'h' for height, 'r' for radius
     let polygonPoints = []; // Stores objects {x: 0, y: 0}
@@ -892,7 +930,7 @@
 
     function toggleRoofType(type) {
         currentMode = type;
-        isCurvedMode = (type === 'curve');
+        isCurvedMode = (type === 'curve' || type === 'crimpCurve');
         
         // Update Buttons
         document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
@@ -906,6 +944,7 @@
         document.getElementById('inputs-irregular').style.display = 'none';
         document.getElementById('inputs-parallelogram').style.display = 'none';
         document.getElementById('inputs-polygon').style.display = 'none';
+        document.getElementById('inputs-crimpCurve').style.display = 'none';
         
         document.getElementById('input-angle').style.display = 'block';
         document.getElementById('input-curve-height').style.display = 'none';
@@ -950,6 +989,14 @@
         } else if (type === 'polygon') {
             document.getElementById('inputs-polygon').style.display = 'block';
             document.getElementById('input-overhang-container').style.display = 'none';
+        } else if (type === 'crimpCurve') {
+            document.getElementById('inputs-standard').style.display = 'block';
+            document.getElementById('inputs-crimpCurve').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none';
+            document.getElementById('input-angle').style.display = 'none';
+            document.getElementById('lbl-width').innerText = '2. ความกว้างอาคาร (ม.)';
+            document.getElementById('lbl-run').innerText = '3. ฐานรวม (Total Run) (ม.)';
+            document.getElementById('roofRun').placeholder = "ระยะแนวนอนจากผนังถึงชายหน้า";
         }
     }
 
@@ -1006,7 +1053,7 @@
         let overhang = parseFloat(document.getElementById('overhang').value) || 0;
         
         // Force overhang to 0 for types that don't use it
-        if (currentMode === 'rightTri' || currentMode === 'trapezoid' || currentMode === 'irregular' || currentMode === 'parallelogram' || currentMode === 'polygon') {
+        if (currentMode === 'rightTri' || currentMode === 'trapezoid' || currentMode === 'irregular' || currentMode === 'parallelogram' || currentMode === 'polygon' || currentMode === 'crimpCurve') {
             overhang = 0;
         }
 
@@ -1626,6 +1673,91 @@
             document.getElementById('cuttingFormula').style.display = 'block';
             document.getElementById('cuttingSheetList').style.display = 'block';
             document.getElementById('cutListDesc').innerText = "(ประเมินการปูแผ่นจากซ้ายสุดไปขวาสุด)";
+
+        } else if (currentMode === 'crimpCurve') {
+            document.getElementById('labelLength').innerText = "ความยาวแผ่นตัดรวม";
+            let width = parseFloat(document.getElementById('roofWidth').value) || 0;
+            let run = parseFloat(document.getElementById('roofRun').value) || 0; // ทำหน้าที่เป็นฐานรวม
+            
+            if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกความกว้างอาคารและฐานรวมให้ครบถ้วน"); return; }
+            
+            let W_total = run;
+            let H_back = parseFloat(document.getElementById('cc_backHeight').value) || 0;
+            let H_curve_input = parseFloat(document.getElementById('cc_curveHeight').value) || 0;
+            let W_curve = parseFloat(document.getElementById('cc_curveBase').value) || 0;
+            let H_front_hang = parseFloat(document.getElementById('cc_frontOverhang').value) || 0;
+            let L_back_hang = parseFloat(document.getElementById('cc_backOverhang').value) || 0;
+            let purlinPlus = parseFloat(document.getElementById('cc_purlinPlus').value) || 0;
+            let targetSpacing = parseFloat(document.getElementById('cc_crimpSpacing').value) || 2.5;
+
+            if (targetSpacing < 1.7) targetSpacing = 1.7;
+            
+            if (W_curve > W_total) { 
+                W_curve = W_total; 
+                document.getElementById('cc_curveBase').value = W_total; 
+                showWarning("⚠️ ฐานโค้งปรับลดอัตโนมัติ (ห้ามเกินฐานรวม)");
+            }
+            
+            let targetSpacingM = targetSpacing / 100;
+            
+            let W_straight = W_total - W_curve;
+            let H_straight_drop = H_back - H_curve_input;
+            let dy_straight = H_straight_drop; 
+            let dx_straight = W_straight;      
+            let slopeAngleRad = Math.atan2(dy_straight, dx_straight);
+            let slopeAngleDeg = slopeAngleRad * (180 / Math.PI);
+            
+            let m_normal = -dx_straight / dy_straight;
+            let Mx = W_curve / 2;
+            let My = H_curve_input / 2;
+            let m_bisect = -W_curve / H_curve_input;
+            let Cx = (My - m_bisect * Mx) / (m_normal - m_bisect);
+            let Cy = m_normal * Cx;
+            let Radius = Math.sqrt(Cx*Cx + Cy*Cy);
+            
+            let angStart = Math.atan2(-Cy, -Cx);
+            let angEnd = Math.atan2(H_curve_input - Cy, W_curve - Cx);
+            let sweepAngleRad = Math.abs(angEnd - angStart);
+            if (sweepAngleRad > Math.PI) sweepAngleRad = 2*Math.PI - sweepAngleRad;
+            let sweepAngleDeg = sweepAngleRad * (180 / Math.PI);
+            let arcLength = Radius * sweepAngleRad;
+
+            let inputDegreeVal = sweepAngleDeg / ((arcLength / targetSpacingM) + 1);
+            if (inputDegreeVal <= 0.01) inputDegreeVal = 0.01;
+
+            let rawRatio = sweepAngleDeg / inputDegreeVal;
+            let actualCrimps = Math.round(rawRatio) - 1;
+            if (actualCrimps < 1) actualCrimps = 1;
+
+            let realSpacing = arcLength / actualCrimps;
+            let realDegree = sweepAngleDeg / actualCrimps;
+
+            let straightLen = Math.sqrt(dx_straight**2 + dy_straight**2);
+            let backTotal = purlinPlus + L_back_hang;
+            totalLen = backTotal + straightLen + arcLength + H_front_hang;
+            
+            geometricArea = width * totalLen;
+            sheetCount = Math.ceil(width / sheetW);
+            totalLinearMeter = totalLen * sheetCount;
+            billableArea = totalLinearMeter * sheetW;
+            flashingLen = (width * 2) + (totalLen * 2);
+            
+            drawCrimpCurve(W_total, H_back, W_straight, H_straight_drop, W_curve, H_front_hang, L_back_hang, slopeAngleRad, Cx, Cy, Radius, angStart, angEnd, H_curve_input, actualCrimps, totalLen);
+            
+            document.getElementById('print-type').innerText = "หลังคาย้ำโค้ง (Awning)";
+            document.getElementById('print-slope-h').innerText = `${slopeAngleDeg.toFixed(1)}°`;
+            document.getElementById('print-width').innerText = `${width.toFixed(2)} (กว้าง)`;
+            document.getElementById('print-run').innerText = `${W_total.toFixed(2)} (ฐานรวม)`;
+            document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+            
+            let formulaHtml = `
+                <div class="formula-line"><span>1. ระยะแผ่น (ยาว):</span> <span class="formula-val">หลัง(${backTotal.toFixed(2)}) + ลาด(${straightLen.toFixed(2)}) + โค้ง(${arcLength.toFixed(2)}) + หน้า(${H_front_hang.toFixed(2)}) = ${totalLen.toFixed(2)} ม.</span></div>
+                <div class="formula-line"><span>2. ข้อมูลย้ำโค้ง:</span> <span class="formula-val" style="color:var(--primary-color);">จำนวน ${actualCrimps} ครั้ง (ห่าง ${(realSpacing*100).toFixed(2)} ซม. / มุม ${realDegree.toFixed(2)}°)</span></div>
+                <div class="formula-line"><span>3. รัศมี (Radius):</span> <span class="formula-val">R = ${Radius.toFixed(2)} ม. / โค้งรวม ${sweepAngleDeg.toFixed(2)}°</span></div>
+                <div class="formula-line"><span>4. พื้นที่ขาย (Billable):</span> <span class="formula-val">แผ่นยาวตัดรวม (${totalLinearMeter.toFixed(2)}) × หน้ากว้าง (${sheetW}) = ${billableArea.toFixed(2)} ตร.ม.</span></div>
+            `;
+            document.getElementById('formulaContent').innerHTML = formulaHtml;
+            document.getElementById('cuttingFormula').style.display = 'block';
         }
 
         // --- FINAL CALCULATIONS ---
@@ -1657,7 +1789,7 @@
 
         // Print Summary Updates
         document.getElementById('print-model').innerText = profileName;
-        if(currentMode !== 'trapezoid' && currentMode !== 'triangle' && currentMode !== 'rightTri' && currentMode !== 'irregular' && currentMode !== 'polygon') {
+        if(currentMode !== 'trapezoid' && currentMode !== 'triangle' && currentMode !== 'rightTri' && currentMode !== 'irregular' && currentMode !== 'polygon' && currentMode !== 'crimpCurve') {
             document.getElementById('print-width').innerText = document.getElementById('roofWidth').value;
             document.getElementById('print-run').innerText = document.getElementById('roofRun').value;
         }
@@ -1942,6 +2074,115 @@
         ctx.fillStyle = '#E30613';
         ctx.font = "14px Sarabun";
         ctx.fillText("Top View (มุมมองบน)", startX, botY + 45);
+    }
+
+    function drawCrimpCurve(W_total, H_back, W_straight, H_straight_drop, W_curve, H_front_hang, L_back_hang, slopeAngle, Cx, Cy, R, angStart, angEnd, H_curve_drop, segments, calculatedLen) {
+        const canvas = document.getElementById('roofCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const padding = 60;
+        
+        ctx.clearRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        
+        let availW = w - (padding * 2);
+        let availH = h - (padding * 2);
+        
+        const minX = -L_back_hang;
+        const maxX = W_total + 0.1; 
+        const minY = -L_back_hang * Math.sin(slopeAngle) - 0.1; 
+        const maxY = H_straight_drop + Math.max(H_curve_drop, H_curve_drop + H_front_hang) + 0.2;
+        
+        const scale = Math.min(availW / (maxX - minX), availH / (maxY - minY));
+        const orgX = padding + (Math.abs(minX) * scale);
+        const orgY = padding + (Math.abs(minY) * scale);
+        
+        function trX(x) { return orgX + x * scale; }
+        function trY(y) { return orgY + y * scale; }
+
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        // 1. Structure
+        // Back Hang
+        const BackTipX = -L_back_hang * Math.cos(slopeAngle);
+        const BackTipY = -L_back_hang * Math.sin(slopeAngle);
+        
+        ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
+        ctx.moveTo(trX(BackTipX), trY(BackTipY)); ctx.lineTo(trX(0), trY(0)); ctx.stroke();
+        
+        // Straight
+        ctx.beginPath(); ctx.strokeStyle = '#E30613'; ctx.lineWidth = 4;
+        ctx.moveTo(trX(0), trY(0));
+        ctx.lineTo(trX(W_straight), trY(H_straight_drop)); ctx.stroke();
+        
+        // Curve
+        const WorldCx = W_straight + Cx;
+        const WorldCy = H_straight_drop + Cy;
+        ctx.beginPath(); ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 5;
+        ctx.arc(trX(WorldCx), trY(WorldCy), R * scale, angStart, angEnd, false); ctx.stroke();
+        
+        // Crimps (Internal ticks)
+        if (segments > 1) {
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            for (let i = 1; i < segments; i++) {
+                const theta = angStart + (angEnd - angStart) * (i / segments);
+                const px = WorldCx + R * Math.cos(theta);
+                const py = WorldCy + R * Math.sin(theta);
+                const nx = Math.cos(theta); const ny = Math.sin(theta);
+                ctx.beginPath(); 
+                ctx.moveTo(trX(px - nx*0.04), trY(py - ny*0.04)); 
+                ctx.lineTo(trX(px + nx*0.04), trY(py + ny*0.04)); 
+                ctx.stroke();
+            }
+        }
+        
+        // Front
+        const CurveEndX = W_total;
+        const CurveEndY = H_straight_drop + H_curve_drop; 
+        ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4;
+        ctx.moveTo(trX(CurveEndX), trY(CurveEndY)); 
+        ctx.lineTo(trX(CurveEndX), trY(CurveEndY + H_front_hang)); 
+        ctx.stroke();
+
+        // 2. Dimensions
+        drawDim(ctx, trX(0), trY(CurveEndY + H_front_hang), trX(W_total), trY(CurveEndY + H_front_hang), `ฐานรวม ${W_total.toFixed(2)} ม.`, 40, '#64748b');
+        drawDim(ctx, trX(0), trY(0), trX(0), trY(H_straight_drop), `ตรงตก ${H_straight_drop.toFixed(2)}`, 30, '#E30613');
+        drawDim(ctx, trX(W_total), trY(H_straight_drop), trX(W_total), trY(CurveEndY), `โค้งตก ${H_curve_drop.toFixed(2)}`, -40, '#dc2626');
+        drawDim(ctx, trX(W_straight), trY(CurveEndY), trX(W_total), trY(CurveEndY), `ฐานโค้ง ${W_curve.toFixed(2)}`, 30, '#dc2626');
+        
+        if (H_front_hang > 0) {
+            drawDim(ctx, trX(W_total), trY(CurveEndY), trX(W_total), trY(CurveEndY + H_front_hang), `ชายหน้า ${H_front_hang.toFixed(2)}`, -40, '#2563eb');
+        }
+        
+        // Radius dashed line
+        const midTheta = (angStart + angEnd) / 2;
+        const midX = WorldCx + R * Math.cos(midTheta);
+        const midY = WorldCy + R * Math.sin(midTheta);
+        
+        ctx.beginPath(); ctx.strokeStyle = '#dc2626'; ctx.setLineDash([4,4]); ctx.lineWidth = 1.5;
+        ctx.moveTo(trX(WorldCx), trY(WorldCy)); 
+        ctx.lineTo(trX(midX), trY(midY)); 
+        ctx.stroke(); ctx.setLineDash([]);
+        
+        let rTx = trX(WorldCx + (R/2) * Math.cos(midTheta));
+        let rTy = trY(WorldCy + (R/2) * Math.sin(midTheta));
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillRect(rTx - 20, rTy - 10, 40, 20);
+        ctx.fillStyle = '#dc2626'; ctx.font = 'bold 12px Sarabun'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+        ctx.fillText(`R${R.toFixed(2)}`, rTx, rTy);
+
+        // Guide box
+        ctx.setLineDash([2,2]); ctx.strokeStyle='rgba(220, 38, 38, 0.4)'; ctx.lineWidth=1;
+        ctx.beginPath(); 
+        ctx.moveTo(trX(W_straight), trY(H_straight_drop)); ctx.lineTo(trX(W_total), trY(H_straight_drop)); 
+        ctx.lineTo(trX(W_total), trY(CurveEndY)); ctx.lineTo(trX(W_straight), trY(CurveEndY)); 
+        ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#E30613';
+        ctx.font = "bold 14px Sarabun";
+        ctx.fillText(`แผ่นยาวรวม ${calculatedLen.toFixed(2)} ม.`, w/2, h - 15);
     }
 
     function drawRoof(run, angle, overhang, calculatedLen) {

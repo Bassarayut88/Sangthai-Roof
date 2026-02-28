@@ -1217,25 +1217,22 @@
             if (W_curve > W_total) W_curve = W_total;
             if (H_curve > H_back) H_curve = H_back;
 
-            // 1. หาความลาดชัน (Slope) จากกล่องที่คุณกรอก (200, 50, 20, 20)
+            // 1. หาความลาดชัน (Slope) 
             const W_straight = W_total - W_curve;
             const H_straight_drop = H_back - H_curve;
             
             const slopeAngleRad = Math.atan2(H_straight_drop, W_straight);
-            const slopeAngleDeg = slopeAngleRad * (180 / Math.PI); // จะได้ประมาณ 9.46°
+            const slopeAngleDeg = slopeAngleRad * (180 / Math.PI); 
 
-            // 2. ลอจิกแบบ AutoCAD (Tangent Smooth Bend): 
-            // โค้งต้องสัมผัสเนียนกับแผ่นลาดเอียง และ จบลงแบบดิ่งตรง (90 องศา)
-            // ดังนั้น มุมรวมของส่วนโค้ง (Sweep Angle) = 90 - องศาลาดเอียง
+            // 2. ลอจิกแบบ AutoCAD (Tangent Smooth Bend)
             let sweepAngleRad = (Math.PI / 2) - slopeAngleRad;
             let sweepAngleDeg = sweepAngleRad * (180 / Math.PI); 
 
-            // ปัดเศษ Arc Angle ให้เป็นจำนวนเต็มตามแบบ AutoCAD (เช่น 80.50 -> 81)
             sweepAngleDeg = Math.round(sweepAngleDeg);
-            sweepAngleRad = sweepAngleDeg * (Math.PI / 180); // คำนวณ Radian ใหม่จากองศาที่ปัดเศษแล้ว
+            sweepAngleRad = sweepAngleDeg * (Math.PI / 180); 
 
-            // 3. ความยาวโค้งจริง คำนวณจากมุม Tangent นี้
-            const arcLength = R * sweepAngleRad; // จะได้ประมาณ 33.93 ซม.
+            // 3. ความยาวโค้งจริง
+            const arcLength = R * sweepAngleRad; 
 
             // --- คำนวณจำนวนย้ำ (Crimps) ---
             let inputDegreeVal = 0;
@@ -1252,11 +1249,14 @@
 
             let rawRatio = sweepAngleDeg / inputDegreeVal;
             let roundedRatio = Math.round(rawRatio);
-            let actualCrimps = roundedRatio - 1;
-            if (actualCrimps < 1) actualCrimps = 1; 
+            
+            // ✅ เปลี่ยนแปลงตามคำขอ: จำนวนย้ำไม่ต้อง - 1
+            let actualCrimps = roundedRatio; 
+            if (actualCrimps < 2) actualCrimps = 2; // ป้องกันส่วนเป็น 0 (ต้องมีอย่างน้อย 2 จุดย้ำ เพื่อให้เกิด 1 ช่อง)
 
-            let realSpacing = arcLength / actualCrimps;
-            let realDegree = sweepAngleDeg / actualCrimps;
+            // ✅ เปลี่ยนแปลงตามคำขอ: ระยะห่างย้ำใช้ ความยาวโค้ง / (จำนวนย้ำ - 1)
+            let realSpacing = arcLength / (actualCrimps - 1);
+            let realDegree = sweepAngleDeg / (actualCrimps - 1);
 
             // อัปเดต Input กลับไปให้ผู้ใช้เห็น
             if (calcMode === 'spacing') {
@@ -1265,7 +1265,7 @@
                 document.getElementById('crimpSpacing').value = realSpacing.toFixed(2);
             }
 
-            // อัปเดตตัวเลขบนหน้าจอ (Arc Angle จะแสดงเป็นจำนวนเต็ม)
+            // อัปเดตตัวเลขบนหน้าจอ
             document.getElementById('resSlopeAngle').innerText = slopeAngleDeg.toFixed(2);
             document.getElementById('resArcAngle').innerText = sweepAngleDeg.toFixed(0);
             document.getElementById('resRadius').innerText = R.toFixed(2);
@@ -1300,17 +1300,17 @@
             if (availW <= 0 || availH <= 0) return;
             if (isNaN(R) || R <= 0) return;
 
-            // พิกัดเรขาคณิตที่แท้จริงเพื่อให้เส้นต่อกันสนิท (Smooth Tangent)
+            // พิกัดเรขาคณิตที่แท้จริง
             const StartArcX = W_straight;
             const StartArcY = H_straight_drop;
             
-            // หาจุดศูนย์กลางของส่วนโค้ง (ตั้งฉากกับเส้นลาดเอียง)
+            // หาจุดศูนย์กลางของส่วนโค้ง
             const Cx = StartArcX - R * Math.sin(slopeAngleRad);
             const Cy = StartArcY + R * Math.cos(slopeAngleRad);
             
             // มุมวาดใน Canvas
             const angStart = Math.atan2(StartArcY - Cy, StartArcX - Cx); 
-            const angEnd = 0; // จบที่แนวดิ่งเป๊ะ (มุม 0 เรเดียนในแกน Y กลับด้าน)
+            const angEnd = 0; 
             
             // จุดจบของส่วนโค้ง
             const EndArcX = Cx + R;
@@ -1336,7 +1336,7 @@
             ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
             ctx.moveTo(trX(BackTipX), trY(BackTipY)); ctx.lineTo(trX(0), trY(0)); ctx.stroke();
             
-            // เส้นแผ่นตรง (Straight) - วาดถึงจุด StartArc พอดีเป๊ะ
+            // เส้นแผ่นตรง (Straight)
             ctx.beginPath(); ctx.moveTo(trX(0), trY(0));
             ctx.lineTo(trX(StartArcX), trY(StartArcY)); ctx.stroke();
             
@@ -1347,11 +1347,12 @@
             ctx.arc(trX(Cx), trY(Cy), R * scale, angStart, angEnd, false); 
             ctx.stroke();
             
-            // วาดย้ำ (Crimp dividers)
-            if (segments > 1) {
+            // ✅ ปรับปรุงการวาดย้ำ: วาดเส้นตามจำนวนช่องว่าง (Spaces = จำนวนย้ำ - 1)
+            let visualSpaces = segments - 1; 
+            if (visualSpaces > 1) { // ต้องมีช่องว่างมากกว่า 1 ถึงจะมีเส้นแบ่งข้างในโค้ง
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-                for (let i = 1; i < segments; i++) {
-                    const theta = angStart + sweepAngleRad * (i / segments);
+                for (let i = 1; i < visualSpaces; i++) {
+                    const theta = angStart + sweepAngleRad * (i / visualSpaces);
                     const px = Cx + R * Math.cos(theta);
                     const py = Cy + R * Math.sin(theta);
                     const nx = Math.cos(theta); const ny = Math.sin(theta);
@@ -1363,7 +1364,7 @@
             ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4;
             ctx.moveTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(EndArcX), trY(EndArcY + H_front_hang)); ctx.stroke();
 
-            // 2. Beautiful Dimensions (วาดบอกระยะ)
+            // 2. Beautiful Dimensions
             function drawArrowLine(x1, y1, x2, y2, text, color, offset=0) {
                 ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 1;
                 let dx = x2 - x1; let dy = y2 - y1;
@@ -1404,11 +1405,9 @@
                 ctx.fill();
             }
 
-            // แสดงระยะตามที่ผู้ใช้กรอก เพื่อไม่ให้สับสน
             drawArrowLine(trX(0), trY(0), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
             drawArrowLine(trX(0), trY(EndArcY+H_front_hang), trX(EndArcX), trY(EndArcY+H_front_hang), W_total + " ซม.", '#64748b', -30);
 
-            // คำนวณ dx, dy จริงของส่วนโค้งที่วาด เพื่อโชว์ในเส้น Dimension
             const actualCurveBase = EndArcX - StartArcX;
             const actualCurveHeight = EndArcY - StartArcY;
 

@@ -974,11 +974,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="input-label">แป+ (ซม.)</label>
-                            <input type="number" id="purlinPlus" class="input-box text-blue-600" value="0" oninput="calculate()">
-                        </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                             <label class="input-label">ชายหลัง (ซม.)</label>
                             <input type="number" id="backOverhang" class="input-box" value="0" oninput="calculate()">
@@ -1044,6 +1040,16 @@
                                 </div>
                             </div>
                             
+                            <!-- Purlin Size -->
+                            <div>
+                                <label class="input-label flex justify-between text-slate-700">ขนาดแป (ซม.) <span class="font-normal opacity-70">(Purlin)</span></label>
+                                <div class="stepper-container bg-slate-50">
+                                    <button class="stepper-btn" onclick="stepValue('purlinSize', -1)"><i class="fa-solid fa-minus"></i></button>
+                                    <input type="number" id="purlinSize" class="input-box-stepper" value="5" oninput="calculate()">
+                                    <button class="stepper-btn" onclick="stepValue('purlinSize', 1)"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            
                             <!-- Curve Section Group -->
                             <div class="p-3 bg-red-50/50 rounded-lg border border-red-100 space-y-3 relative mt-3">
                                 <div class="absolute -top-3 left-3 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded shadow-sm">
@@ -1052,7 +1058,7 @@
 
                                 <!-- ฐานโค้ง -->
                                 <div class="pt-1">
-                                    <label class="input-label flex justify-between text-red-600">ฐานโค้ง (ซม.)</label>
+                                    <label class="input-label flex justify-between text-red-600">ฐานโค้ง (เคลียร์ใน) ซม.</label>
                                     <div class="stepper-container border-red-200">
                                         <button class="stepper-btn text-red-400 hover:text-red-600 hover:bg-red-50" onclick="stepValue('curveBase', -1)"><i class="fa-solid fa-minus"></i></button>
                                         <input type="number" id="curveBase" class="input-box-stepper text-red-600" value="20" oninput="calculate()">
@@ -1062,7 +1068,7 @@
 
                                 <!-- สูงหน้าโค้ง -->
                                 <div>
-                                    <label class="input-label flex justify-between text-red-600">สูงหน้าโค้ง (ซม.)</label>
+                                    <label class="input-label flex justify-between text-red-600">สูงหน้าโค้ง (เคลียร์ใน) ซม.</label>
                                     <div class="stepper-container border-red-200">
                                         <button class="stepper-btn text-red-400 hover:text-red-600 hover:bg-red-50" onclick="stepValue('curveHeight', -1)"><i class="fa-solid fa-minus"></i></button>
                                         <input type="number" id="curveHeight" class="input-box-stepper text-red-600" value="20" oninput="calculate()">
@@ -1134,7 +1140,7 @@
                         </div>
                         <div class="grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-100 text-center">
                             <div class="p-3">
-                                <div class="text-[10px] text-slate-400">แป+ / ชายหลัง</div>
+                                <div class="text-[10px] text-slate-400">ชายหลัง (Back)</div>
                                 <div class="font-bold text-slate-700"><span id="bk_back">0</span></div>
                             </div>
                             <div class="p-3 bg-green-50/30">
@@ -1158,300 +1164,337 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+        <script>
+            document.getElementById('currentDate').innerText = new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        const canvas = document.getElementById('awningCanvas');
-        const ctx = canvas.getContext('2d');
-        let calcMode = 'spacing';
+            const canvas = document.getElementById('awningCanvas');
+            const ctx = canvas.getContext('2d');
+            let calcMode = 'spacing';
 
-        function stepValue(id, amount) {
-            const el = document.getElementById(id);
-            let val = parseFloat(el.value) || 0;
-            let newVal = val + amount;
-            
-            if (newVal < 0) newVal = 0;
-            if (id === 'customR' && newVal < 1) newVal = 1; 
-            
-            el.value = newVal;
-            calculate();
-        }
-
-        function updateMode() {
-            const spacingRadio = document.getElementById('modeSpacing');
-            calcMode = spacingRadio.checked ? 'spacing' : 'degree';
-            const boxSpacing = document.getElementById('boxSpacing');
-            const boxDegree = document.getElementById('boxDegree');
-            const inputSpacing = document.getElementById('crimpSpacing');
-            const inputDegree = document.getElementById('targetDegree');
-
-            if (calcMode === 'spacing') {
-                boxSpacing.classList.remove('opacity-50'); boxDegree.classList.add('opacity-50');
-                inputSpacing.disabled = false; inputDegree.disabled = true;
-            } else {
-                boxSpacing.classList.add('opacity-50'); boxDegree.classList.remove('opacity-50');
-                inputSpacing.disabled = true; inputDegree.disabled = false;
-            }
-            calculate();
-        }
-
-        function validateSpacing() {
-            const el = document.getElementById('crimpSpacing');
-            if (parseFloat(el.value) < 1.7) el.value = 1.7;
-            calculate();
-        }
-
-        function calculate() {
-            const W_total = parseFloat(document.getElementById('totalBase').value) || 200;
-            const H_back = parseFloat(document.getElementById('backHeight').value) || 50;
-            let W_curve = parseFloat(document.getElementById('curveBase').value) || 20;
-            let H_curve = parseFloat(document.getElementById('curveHeight').value) || 20;
-            let R = parseFloat(document.getElementById('customR').value) || 24;
-
-            const H_front_hang = parseFloat(document.getElementById('frontOverhang').value) || 10;
-            const L_back_hang = parseFloat(document.getElementById('backOverhang').value) || 0;
-            const purlinPlus = parseFloat(document.getElementById('purlinPlus').value) || 0;
-
-            if (W_curve > W_total) W_curve = W_total;
-            if (H_curve > H_back) H_curve = H_back;
-
-            // 1. หาความลาดชัน (Slope) 
-            const W_straight = W_total - W_curve;
-            const H_straight_drop = H_back - H_curve;
-            
-            const slopeAngleRad = Math.atan2(H_straight_drop, W_straight);
-            const slopeAngleDeg = slopeAngleRad * (180 / Math.PI); 
-
-            // 2. ลอจิกแบบ AutoCAD (Tangent Smooth Bend)
-            let sweepAngleRad = (Math.PI / 2) - slopeAngleRad;
-            let sweepAngleDeg = sweepAngleRad * (180 / Math.PI); 
-
-            sweepAngleDeg = Math.round(sweepAngleDeg);
-            sweepAngleRad = sweepAngleDeg * (Math.PI / 180); 
-
-            // 3. ความยาวโค้งจริง
-            const arcLength = R * sweepAngleRad; 
-
-            // --- คำนวณจำนวนย้ำ (Crimps) ---
-            let inputDegreeVal = 0;
-
-            if (calcMode === 'degree') {
-                inputDegreeVal = parseFloat(document.getElementById('targetDegree').value) || 6.4;
-            } else {
-                let targetSpacing = parseFloat(document.getElementById('crimpSpacing').value) || 3.02;
-                if (targetSpacing < 1.7) targetSpacing = 1.7;
-                inputDegreeVal = sweepAngleDeg / ((arcLength / targetSpacing) + 1);
-            }
-
-            if (inputDegreeVal <= 0.01) inputDegreeVal = 0.01;
-
-            let rawRatio = sweepAngleDeg / inputDegreeVal;
-            let roundedRatio = Math.round(rawRatio);
-            
-            // ✅ เปลี่ยนแปลงตามคำขอ: จำนวนย้ำไม่ต้อง - 1
-            let actualCrimps = roundedRatio; 
-            if (actualCrimps < 2) actualCrimps = 2; // ป้องกันส่วนเป็น 0 (ต้องมีอย่างน้อย 2 จุดย้ำ เพื่อให้เกิด 1 ช่อง)
-
-            // ✅ เปลี่ยนแปลงตามคำขอ: ระยะห่างย้ำใช้ ความยาวโค้ง / (จำนวนย้ำ - 1)
-            let realSpacing = arcLength / (actualCrimps - 1);
-            let realDegree = sweepAngleDeg / (actualCrimps - 1);
-
-            // อัปเดต Input กลับไปให้ผู้ใช้เห็น
-            if (calcMode === 'spacing') {
-                document.getElementById('targetDegree').value = realDegree.toFixed(2);
-            } else {
-                document.getElementById('crimpSpacing').value = realSpacing.toFixed(2);
-            }
-
-            // อัปเดตตัวเลขบนหน้าจอ
-            document.getElementById('resSlopeAngle').innerText = slopeAngleDeg.toFixed(2);
-            document.getElementById('resArcAngle').innerText = sweepAngleDeg.toFixed(0);
-            document.getElementById('resRadius').innerText = R.toFixed(2);
-            document.getElementById('arcLengthDisp').innerText = arcLength.toFixed(2);
-            
-            document.getElementById('resCrimpCount').innerText = actualCrimps;
-            document.getElementById('displayRealSpacing').innerText = realSpacing.toFixed(2);
-            document.getElementById('displayRealDegree').innerText = realDegree.toFixed(2);
-
-            // สรุปความยาว
-            const straightLen = Math.sqrt(W_straight**2 + H_straight_drop**2);
-            const backTotal = purlinPlus + L_back_hang;
-            document.getElementById('bk_back').innerText = backTotal.toFixed(2);
-            document.getElementById('bk_straight').innerText = straightLen.toFixed(2);
-            document.getElementById('bk_arc').innerText = arcLength.toFixed(2);
-            document.getElementById('bk_front').innerText = H_front_hang.toFixed(2);
-            const totalLen = backTotal + straightLen + arcLength + H_front_hang;
-            document.getElementById('totalSheetLength').innerText = (totalLen / 100).toFixed(2);
-
-            drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, actualCrimps);
-        }
-
-        function drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, segments) {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const padding = 60;
-            const availW = canvas.width - (padding * 2);
-            const availH = canvas.height - (padding * 2);
-            
-            if (availW <= 0 || availH <= 0) return;
-            if (isNaN(R) || R <= 0) return;
-
-            // พิกัดเรขาคณิตที่แท้จริง
-            const StartArcX = W_straight;
-            const StartArcY = H_straight_drop;
-            
-            // หาจุดศูนย์กลางของส่วนโค้ง
-            const Cx = StartArcX - R * Math.sin(slopeAngleRad);
-            const Cy = StartArcY + R * Math.cos(slopeAngleRad);
-            
-            // มุมวาดใน Canvas
-            const angStart = Math.atan2(StartArcY - Cy, StartArcX - Cx); 
-            const angEnd = 0; 
-            
-            // จุดจบของส่วนโค้ง
-            const EndArcX = Cx + R;
-            const EndArcY = Cy;
-
-            const minX = -L_back_hang;
-            const maxX = Math.max(W_total, EndArcX) + 10; 
-            const minY = -10; 
-            const maxY = Math.max(H_back, EndArcY) + H_front_hang;
-            const scale = Math.min(availW / (maxX - minX), availH / (maxY - minY));
-            const orgX = padding + (L_back_hang * scale);
-            const orgY = padding + 10; 
-            function trX(x) { return orgX + x * scale; }
-            function trY(y) { return orgY + y * scale; }
-
-            ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-
-            // 1. วาดโครงสร้างหลังคา
-            const BackTipX = -L_back_hang * Math.cos(slopeAngleRad);
-            const BackTipY = -L_back_hang * Math.sin(slopeAngleRad);
-            
-            // เส้นชายหลัง
-            ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
-            ctx.moveTo(trX(BackTipX), trY(BackTipY)); ctx.lineTo(trX(0), trY(0)); ctx.stroke();
-            
-            // เส้นแผ่นตรง (Straight)
-            ctx.beginPath(); ctx.moveTo(trX(0), trY(0));
-            ctx.lineTo(trX(StartArcX), trY(StartArcY)); ctx.stroke();
-            
-            // เส้นโค้ง (Tangent Arc)
-            ctx.beginPath(); 
-            ctx.strokeStyle = '#dc2626'; 
-            ctx.lineWidth = 5;
-            ctx.arc(trX(Cx), trY(Cy), R * scale, angStart, angEnd, false); 
-            ctx.stroke();
-            
-            // ✅ ปรับปรุงการวาดย้ำ: วาดเส้นตามจำนวนช่องว่าง (Spaces = จำนวนย้ำ - 1)
-            let visualSpaces = segments - 1; 
-            if (visualSpaces > 1) { // ต้องมีช่องว่างมากกว่า 1 ถึงจะมีเส้นแบ่งข้างในโค้ง
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-                for (let i = 1; i < visualSpaces; i++) {
-                    const theta = angStart + sweepAngleRad * (i / visualSpaces);
-                    const px = Cx + R * Math.cos(theta);
-                    const py = Cy + R * Math.sin(theta);
-                    const nx = Math.cos(theta); const ny = Math.sin(theta);
-                    ctx.beginPath(); ctx.moveTo(trX(px - nx*2), trY(py - ny*2)); ctx.lineTo(trX(px + nx*2), trY(py + ny*2)); ctx.stroke();
-                }
-            }
-            
-            // เส้นชายหน้า (Front Hang)
-            ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4;
-            ctx.moveTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(EndArcX), trY(EndArcY + H_front_hang)); ctx.stroke();
-
-            // 2. Beautiful Dimensions
-            function drawArrowLine(x1, y1, x2, y2, text, color, offset=0) {
-                ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 1;
-                let dx = x2 - x1; let dy = y2 - y1;
-                let len = Math.sqrt(dx*dx + dy*dy);
-                if(len === 0) return;
-                let udx = dx/len; let udy = dy/len;
-                let pdx = -udy; let pdy = udx;
-                let ox1 = x1 + pdx * offset; let oy1 = y1 + pdy * offset;
-                let ox2 = x2 + pdx * offset; let oy2 = y2 + pdy * offset;
-
-                ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2); ctx.stroke();
-
-                drawArrowHead(ox1, oy1, ox2, oy2);
-                drawArrowHead(ox2, oy2, ox1, oy1);
-
-                let tx = (ox1 + ox2)/2; let ty = (oy1 + oy2)/2;
-                ctx.font = 'bold 11px Sarabun'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+            function stepValue(id, amount) {
+                const el = document.getElementById(id);
+                let val = parseFloat(el.value) || 0;
+                let newVal = val + amount;
                 
+                if (newVal < 0) newVal = 0;
+                if (id === 'customR' && newVal < 1) newVal = 1; 
+                if (id === 'purlinSize' && newVal < 1) newVal = 1; 
+                
+                el.value = newVal;
+                calculate();
+            }
+
+            function updateMode() {
+                const spacingRadio = document.getElementById('modeSpacing');
+                calcMode = spacingRadio.checked ? 'spacing' : 'degree';
+                const boxSpacing = document.getElementById('boxSpacing');
+                const boxDegree = document.getElementById('boxDegree');
+                const inputSpacing = document.getElementById('crimpSpacing');
+                const inputDegree = document.getElementById('targetDegree');
+
+                if (calcMode === 'spacing') {
+                    boxSpacing.classList.remove('opacity-50'); boxDegree.classList.add('opacity-50');
+                    inputSpacing.disabled = false; inputDegree.disabled = true;
+                } else {
+                    boxSpacing.classList.add('opacity-50'); boxDegree.classList.remove('opacity-50');
+                    inputSpacing.disabled = true; inputDegree.disabled = false;
+                }
+                calculate();
+            }
+
+            function validateSpacing() {
+                const el = document.getElementById('crimpSpacing');
+                if (parseFloat(el.value) < 1.7) el.value = 1.7;
+                calculate();
+            }
+
+            function calculate() {
+                const W_total = parseFloat(document.getElementById('totalBase').value) || 200;
+                const H_back = parseFloat(document.getElementById('backHeight').value) || 50;
+                
+                const purlinSize = parseFloat(document.getElementById('purlinSize').value) || 5;
+
+                // ค่าที่ผู้ใช้กรอกสำหรับแสดงผล
+                const inputCurveBase = parseFloat(document.getElementById('curveBase').value) || 20;
+                const inputCurveHeight = parseFloat(document.getElementById('curveHeight').value) || 20;
+
+                // บวกขนาดแปเข้าไปในฐานโค้งและสูงหน้าโค้งเพื่อใช้คำนวณองศาที่ถูกต้อง
+                let W_curve = inputCurveBase + purlinSize;
+                let H_curve = inputCurveHeight + purlinSize;
+                
+                let R = parseFloat(document.getElementById('customR').value) || 24;
+
+                const H_front_hang = parseFloat(document.getElementById('frontOverhang').value) || 10;
+                const L_back_hang = parseFloat(document.getElementById('backOverhang').value) || 0;
+
+                if (W_curve > W_total) W_curve = W_total;
+                if (H_curve > H_back) H_curve = H_back;
+
+                // 1. หาความลาดชัน (Slope) 
+                const W_straight = W_total - W_curve;
+                const H_straight_drop = H_back - H_curve;
+                
+                const slopeAngleRad = Math.atan2(H_straight_drop, W_straight);
+                const slopeAngleDeg = slopeAngleRad * (180 / Math.PI); 
+
+                // 2. ลอจิกแบบ AutoCAD (Tangent Smooth Bend)
+                let sweepAngleRad = (Math.PI / 2) - slopeAngleRad;
+                let sweepAngleDeg = sweepAngleRad * (180 / Math.PI); 
+
+                sweepAngleDeg = Math.round(sweepAngleDeg);
+                sweepAngleRad = sweepAngleDeg * (Math.PI / 180); 
+
+                // 3. ความยาวโค้งจริง
+                const arcLength = R * sweepAngleRad; 
+
+                // --- คำนวณจำนวนย้ำ (Crimps) ---
+                let inputDegreeVal = 0;
+
+                if (calcMode === 'degree') {
+                    inputDegreeVal = parseFloat(document.getElementById('targetDegree').value) || 6.4;
+                } else {
+                    let targetSpacing = parseFloat(document.getElementById('crimpSpacing').value) || 3.02;
+                    if (targetSpacing < 1.7) targetSpacing = 1.7;
+                    inputDegreeVal = sweepAngleDeg / ((arcLength / targetSpacing) + 1);
+                }
+
+                if (inputDegreeVal <= 0.01) inputDegreeVal = 0.01;
+
+                let rawRatio = sweepAngleDeg / inputDegreeVal;
+                let roundedRatio = Math.round(rawRatio);
+                
+                // ✅ เปลี่ยนแปลงตามคำขอ: จำนวนย้ำไม่ต้อง - 1
+                let actualCrimps = roundedRatio; 
+                if (actualCrimps < 2) actualCrimps = 2; // ป้องกันส่วนเป็น 0 (ต้องมีอย่างน้อย 2 จุดย้ำ เพื่อให้เกิด 1 ช่อง)
+
+                // ✅ เปลี่ยนแปลงตามคำขอ: ระยะห่างย้ำใช้ ความยาวโค้ง / (จำนวนย้ำ - 1)
+                let realSpacing = arcLength / (actualCrimps - 1);
+                let realDegree = sweepAngleDeg / (actualCrimps - 1);
+
+                // อัปเดต Input กลับไปให้ผู้ใช้เห็น
+                if (calcMode === 'spacing') {
+                    document.getElementById('targetDegree').value = realDegree.toFixed(2);
+                } else {
+                    document.getElementById('crimpSpacing').value = realSpacing.toFixed(2);
+                }
+
+                // อัปเดตตัวเลขบนหน้าจอ
+                document.getElementById('resSlopeAngle').innerText = slopeAngleDeg.toFixed(2);
+                document.getElementById('resArcAngle').innerText = sweepAngleDeg.toFixed(0);
+                document.getElementById('resRadius').innerText = R.toFixed(2);
+                document.getElementById('arcLengthDisp').innerText = arcLength.toFixed(2);
+                
+                document.getElementById('resCrimpCount').innerText = actualCrimps;
+                document.getElementById('displayRealSpacing').innerText = realSpacing.toFixed(2);
+                document.getElementById('displayRealDegree').innerText = realDegree.toFixed(2);
+
+                // สรุปความยาว
+                const straightLen = Math.sqrt(W_straight**2 + H_straight_drop**2);
+                const backTotal = L_back_hang;
+                document.getElementById('bk_back').innerText = backTotal.toFixed(2);
+                document.getElementById('bk_straight').innerText = straightLen.toFixed(2);
+                document.getElementById('bk_arc').innerText = arcLength.toFixed(2);
+                document.getElementById('bk_front').innerText = H_front_hang.toFixed(2);
+                const totalLen = backTotal + straightLen + arcLength + H_front_hang;
+                document.getElementById('totalSheetLength').innerText = (totalLen / 100).toFixed(2);
+
+                drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, actualCrimps, purlinSize, inputCurveBase, inputCurveHeight);
+            }
+
+            function drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, segments, purlinSize, inputCurveBase, inputCurveHeight) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = canvas.parentElement.clientHeight;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const padding = 60;
+                const availW = canvas.width - (padding * 2);
+                const availH = canvas.height - (padding * 2);
+                
+                if (availW <= 0 || availH <= 0) return;
+                if (isNaN(R) || R <= 0) return;
+
+                // พิกัดเรขาคณิตที่แท้จริง
+                const StartArcX = W_straight;
+                const StartArcY = H_straight_drop;
+                
+                // หาจุดศูนย์กลางของส่วนโค้ง
+                const Cx = StartArcX - R * Math.sin(slopeAngleRad);
+                const Cy = StartArcY + R * Math.cos(slopeAngleRad);
+                
+                // มุมวาดใน Canvas
+                const angStart = Math.atan2(StartArcY - Cy, StartArcX - Cx); 
+                const angEnd = 0; 
+                
+                // จุดจบของส่วนโค้ง
+                const EndArcX = Cx + R;
+                const EndArcY = Cy;
+
+                const minX = -L_back_hang;
+                const maxX = Math.max(W_total, EndArcX) + 10; 
+                const minY = -10; 
+                const maxY = Math.max(H_back, EndArcY) + H_front_hang;
+                const scale = Math.min(availW / (maxX - minX), availH / (maxY - minY));
+                const orgX = padding + (L_back_hang * scale);
+                const orgY = padding + 10; 
+                function trX(x) { return orgX + x * scale; }
+                function trY(y) { return orgY + y * scale; }
+
+                ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+                // 1. วาดโครงสร้างหลังคา
+                const BackTipX = -L_back_hang * Math.cos(slopeAngleRad);
+                const BackTipY = -L_back_hang * Math.sin(slopeAngleRad);
+                
+                // เส้นชายหลัง
+                ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
+                ctx.moveTo(trX(BackTipX), trY(BackTipY)); ctx.lineTo(trX(0), trY(0)); ctx.stroke();
+                
+                // เส้นแผ่นตรง (Straight)
+                ctx.beginPath(); ctx.moveTo(trX(0), trY(0));
+                ctx.lineTo(trX(StartArcX), trY(StartArcY)); ctx.stroke();
+                
+                // เส้นโค้ง (Tangent Arc)
+                ctx.beginPath(); 
+                ctx.strokeStyle = '#dc2626'; 
+                ctx.lineWidth = 5;
+                ctx.arc(trX(Cx), trY(Cy), R * scale, angStart, angEnd, false); 
+                ctx.stroke();
+                
+                // ✅ ปรับปรุงการวาดย้ำ: วาดเส้นตามจำนวนช่องว่าง (Spaces = จำนวนย้ำ - 1)
+                let visualSpaces = segments - 1; 
+                if (visualSpaces > 1) { // ต้องมีช่องว่างมากกว่า 1 ถึงจะมีเส้นแบ่งข้างในโค้ง
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                    for (let i = 1; i < visualSpaces; i++) {
+                        const theta = angStart + sweepAngleRad * (i / visualSpaces);
+                        const px = Cx + R * Math.cos(theta);
+                        const py = Cy + R * Math.sin(theta);
+                        const nx = Math.cos(theta); const ny = Math.sin(theta);
+                        ctx.beginPath(); ctx.moveTo(trX(px - nx*2), trY(py - ny*2)); ctx.lineTo(trX(px + nx*2), trY(py + ny*2)); ctx.stroke();
+                    }
+                }
+                
+                // เส้นชายหน้า (Front Hang)
+                ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4;
+                ctx.moveTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(EndArcX), trY(EndArcY + H_front_hang)); ctx.stroke();
+
+                // --- วาดรูปแป (Purlins) ---
+                if (purlinSize > 0) {
+                    const ps = purlinSize * scale;
+                    ctx.fillStyle = '#f1f5f9'; 
+                    ctx.strokeStyle = '#334155'; 
+                    ctx.lineWidth = 1.5;
+
+                    // 1. แปตัวบน (หมุนเอียงรับองศาหลังคา)
+                    ctx.save();
+                    ctx.translate(trX(StartArcX), trY(StartArcY));
+                    ctx.rotate(slopeAngleRad); // หมุนตามความลาดชัน
+                    ctx.beginPath();
+                    ctx.rect(-ps, 0, ps, ps);
+                    ctx.fill(); ctx.stroke();
+                    // วาดกากบาทสัญลักษณ์เหล็กกล่อง
+                    ctx.beginPath(); ctx.moveTo(-ps, 0); ctx.lineTo(0, ps); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
+                    ctx.restore();
+
+                    // 2. แปตัวล่าง (แนวตั้งตรงก่อนเข้าชายหน้า)
+                    ctx.save();
+                    ctx.translate(trX(EndArcX), trY(EndArcY));
+                    ctx.beginPath();
+                    ctx.rect(-ps, 0, ps, ps);
+                    ctx.fill(); ctx.stroke();
+                    // วาดกากบาทสัญลักษณ์เหล็กกล่อง
+                    ctx.beginPath(); ctx.moveTo(-ps, 0); ctx.lineTo(0, ps); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 2. Beautiful Dimensions
+                function drawArrowLine(x1, y1, x2, y2, text, color, offset=0) {
+                    ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 1;
+                    let dx = x2 - x1; let dy = y2 - y1;
+                    let len = Math.sqrt(dx*dx + dy*dy);
+                    if(len === 0) return;
+                    let udx = dx/len; let udy = dy/len;
+                    let pdx = -udy; let pdy = udx;
+                    let ox1 = x1 + pdx * offset; let oy1 = y1 + pdy * offset;
+                    let ox2 = x2 + pdx * offset; let oy2 = y2 + pdy * offset;
+
+                    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2); ctx.stroke();
+
+                    drawArrowHead(ox1, oy1, ox2, oy2);
+                    drawArrowHead(ox2, oy2, ox1, oy1);
+
+                    let tx = (ox1 + ox2)/2; let ty = (oy1 + oy2)/2;
+                    ctx.font = 'bold 11px Sarabun'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+                    
+                    ctx.save();
+                    ctx.globalCompositeOperation = "destination-out";
+                    ctx.lineWidth = 4; ctx.strokeStyle = "rgba(255,255,255,1)";
+                    ctx.strokeText(text, tx, ty);
+                    ctx.globalCompositeOperation = "source-over";
+                    ctx.fillText(text, tx, ty);
+                    ctx.restore();
+                }
+
+                function drawArrowHead(x, y, fromX, fromY) {
+                    let dx = x - fromX; let dy = y - fromY;
+                    let angle = Math.atan2(dy, dx);
+                    let headlen = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                    ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
+                    ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
+                    ctx.fill();
+                }
+
+                drawArrowLine(trX(0), trY(0), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
+                drawArrowLine(trX(0), trY(EndArcY+H_front_hang), trX(EndArcX), trY(EndArcY+H_front_hang), W_total + " ซม.", '#64748b', -30);
+
+                // ใช้ค่าที่ผู้ใช้กรอกมาแสดงผลบนเส้นบอกระยะตรงๆ เพื่อไม่ให้เกิดความสับสน
+                drawArrowLine(trX(EndArcX), trY(StartArcY + purlinSize), trX(EndArcX), trY(EndArcY), Math.max(0, inputCurveHeight).toFixed(1) + " ซม.", '#dc2626', -45);
+                drawArrowLine(trX(StartArcX), trY(EndArcY), trX(EndArcX - purlinSize), trY(EndArcY), Math.max(0, inputCurveBase).toFixed(1) + " ซม.", '#dc2626', 30);
+
+                // วาดแสดงรัศมี (R) ตรงกลางโค้ง
+                const midTheta = angStart + sweepAngleRad / 2;
+                const midX = Cx + R * Math.cos(midTheta);
+                const midY = Cy + R * Math.sin(midTheta);
+                
+                ctx.beginPath(); ctx.strokeStyle = '#4f46e5'; ctx.setLineDash([2,2]);
+                ctx.moveTo(trX(Cx), trY(Cy)); 
+                ctx.lineTo(trX(midX), trY(midY)); 
+                ctx.stroke(); ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#4f46e5';
+                drawArrowHead(trX(midX), trY(midY), trX(Cx), trY(Cy));
+                
+                let rTx = trX(Cx + (R/3) * Math.cos(midTheta));
+                let rTy = trY(Cy + (R/3) * Math.sin(midTheta));
+                let rText = 'R' + R.toFixed(1);
                 ctx.save();
+                ctx.translate(rTx, rTy);
                 ctx.globalCompositeOperation = "destination-out";
-                ctx.lineWidth = 4; ctx.strokeStyle = "rgba(255,255,255,1)";
-                ctx.strokeText(text, tx, ty);
+                ctx.lineWidth = 4; ctx.strokeText(rText, 0, 0);
                 ctx.globalCompositeOperation = "source-over";
-                ctx.fillText(text, tx, ty);
+                ctx.fillStyle = '#4338ca'; ctx.font = 'bold 12px Sarabun'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+                ctx.fillText(rText, 0, 0);
                 ctx.restore();
+
+                // เส้นประตีกรอบ
+                ctx.setLineDash([2,2]); ctx.strokeStyle='rgba(220, 38, 38, 0.3)'; ctx.lineWidth=1;
+                ctx.beginPath(); 
+                ctx.moveTo(trX(StartArcX), trY(StartArcY)); ctx.lineTo(trX(EndArcX), trY(StartArcY)); 
+                ctx.lineTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(StartArcX), trY(EndArcY)); 
+                ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
             }
 
-            function drawArrowHead(x, y, fromX, fromY) {
-                let dx = x - fromX; let dy = y - fromY;
-                let angle = Math.atan2(dy, dx);
-                let headlen = 6;
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
-                ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
-                ctx.fill();
-            }
-
-            drawArrowLine(trX(0), trY(0), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
-            drawArrowLine(trX(0), trY(EndArcY+H_front_hang), trX(EndArcX), trY(EndArcY+H_front_hang), W_total + " ซม.", '#64748b', -30);
-
-            const actualCurveBase = EndArcX - StartArcX;
-            const actualCurveHeight = EndArcY - StartArcY;
-
-            drawArrowLine(trX(EndArcX), trY(StartArcY), trX(EndArcX), trY(EndArcY), actualCurveHeight.toFixed(1) + " ซม.", '#dc2626', -45);
-            drawArrowLine(trX(StartArcX), trY(EndArcY), trX(EndArcX), trY(EndArcY), actualCurveBase.toFixed(1) + " ซม.", '#dc2626', 30);
-
-            // วาดแสดงรัศมี (R) ตรงกลางโค้ง
-            const midTheta = angStart + sweepAngleRad / 2;
-            const midX = Cx + R * Math.cos(midTheta);
-            const midY = Cy + R * Math.sin(midTheta);
-            
-            ctx.beginPath(); ctx.strokeStyle = '#4f46e5'; ctx.setLineDash([2,2]);
-            ctx.moveTo(trX(Cx), trY(Cy)); 
-            ctx.lineTo(trX(midX), trY(midY)); 
-            ctx.stroke(); ctx.setLineDash([]);
-            
-            ctx.fillStyle = '#4f46e5';
-            drawArrowHead(trX(midX), trY(midY), trX(Cx), trY(Cy));
-            
-            let rTx = trX(Cx + (R/3) * Math.cos(midTheta));
-            let rTy = trY(Cy + (R/3) * Math.sin(midTheta));
-            let rText = 'R' + R.toFixed(1);
-            ctx.save();
-            ctx.translate(rTx, rTy);
-            ctx.globalCompositeOperation = "destination-out";
-            ctx.lineWidth = 4; ctx.strokeText(rText, 0, 0);
-            ctx.globalCompositeOperation = "source-over";
-            ctx.fillStyle = '#4338ca'; ctx.font = 'bold 12px Sarabun'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
-            ctx.fillText(rText, 0, 0);
-            ctx.restore();
-
-            // เส้นประตีกรอบ
-            ctx.setLineDash([2,2]); ctx.strokeStyle='rgba(220, 38, 38, 0.3)'; ctx.lineWidth=1;
-            ctx.beginPath(); 
-            ctx.moveTo(trX(StartArcX), trY(StartArcY)); ctx.lineTo(trX(EndArcX), trY(StartArcY)); 
-            ctx.lineTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(StartArcX), trY(EndArcY)); 
-            ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
-        }
-
-        window.addEventListener('resize', () => { calculate(); });
-        calculate();
-    </script>
-</body>
-</html>
+            window.addEventListener('resize', () => { calculate(); });
+            calculate();
+        </script>
+    </body>
+    </html>
 </textarea>
 
 <script>
@@ -2402,7 +2445,6 @@
         
         ctx.beginPath();
         points.forEach((p, i) => {
-            // Normalize relative to minX, minY
             let px = startX + (p.x - minX) * scale;
             let py = startY + (p.y - minY) * scale;
             if (i === 0) ctx.moveTo(px, py);
@@ -2415,35 +2457,61 @@
         
         // Draw Sheets inside polygon
         if (sheetData && sheetData.length > 0) {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
             
+            // 1. วาดเส้น Grid แบ่งแผ่น (ต้องใช้ Clip ป้องกันเส้นทะลุ)
+            ctx.save();
+            ctx.beginPath();
+            points.forEach((p, i) => {
+                let px = startX + (p.x - minX) * scale;
+                let py = startY + (p.y - minY) * scale;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            ctx.closePath();
+            ctx.clip();
+            
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x - minX;
+                if (startRelX > 0 && startRelX < width) {
+                    let edgeX = startX + startRelX * scale;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX, 0);
+                    ctx.lineTo(edgeX, h);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            ctx.restore();
+
+            // 2. วาดตัวเลขและบอกระยะให้อยู่ "กึ่งกลาง"
+            ctx.save();
             sheetData.forEach((sheet, index) => {
-                let sheetCanvasX = startX + (sheet.x - minX) * scale;
-                let sheetCanvasW = sheet.w * scale;
-                let lineX = sheetCanvasX + sheetCanvasW;
+                let startRelX = sheet.x - minX;
+                let endRelX = sheet.x + sheet.w - minX;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > width) endRelX = width;
                 
-                // Constrain drawing line within bounding box
-                if (lineX > startX + drawW) lineX = startX + drawW;
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = startX + relCenter * scale;
+                
+                let yTopCanvas = startY + (sheet.yMin - minY) * scale;
+                let yBotCanvas = startY + (sheet.yMax - minY) * scale;
                 
                 if (sheet.len > 0) {
-                    let yTopCanvas = startY + (sheet.yMin - minY) * scale;
-                    let yBotCanvas = startY + (sheet.yMax - minY) * scale;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(lineX, yTopCanvas);
-                    ctx.lineTo(lineX, yBotCanvas);
-                    ctx.stroke();
-                    
-                    let centerX = sheetCanvasX + sheetCanvasW/2;
-                    if (centerX > startX + drawW) centerX = startX + drawW - 10;
+                    drawVerticalSheetDim(ctx, centerX, yBotCanvas, yTopCanvas, sheet.len.toFixed(2), '#16a34a');
                     
                     let textY = yBotCanvas + 15 + ((index % 3) * 12);
                     ctx.fillStyle = '#d84315';
+                    ctx.font = 'bold 11px Sarabun';
+                    ctx.textAlign = 'center';
+                    
+                    // เพิ่มขอบสีขาวให้ตัวหนังสืออ่านง่ายขึ้น
+                    ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                    ctx.lineWidth = 3;
+                    ctx.strokeText(sheet.id, centerX, textY);
                     ctx.fillText(sheet.id, centerX, textY);
                 }
             });
@@ -2498,47 +2566,66 @@
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
         drawDim(ctx, x, groundY+20, x+dW, groundY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
-        // แก้ไขให้แสดงความยาวจริงของด้าน (Top - Bottom)
         drawDim(ctx, x-20, yBL, x-20, yTL, `L ${(hTL - hBL).toFixed(2)}`, 0, '#333');
         drawDim(ctx, x+dW+20, yBR, x+dW+20, yTR, `R ${(hTR - hBR).toFixed(2)}`, 0, '#333');
 
-        // Draw Sheets
         if (sheetData.length > 0) {
+            
+            // 1. Grid Lines
             ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
-            
+            ctx.beginPath();
+            ctx.moveTo(x, yBL);
+            ctx.lineTo(x, yTL);
+            ctx.lineTo(x + dW, yTR);
+            ctx.lineTo(x + dW, yBR);
+            ctx.closePath();
+            ctx.clip();
+
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x;
+                if (startRelX > 0 && startRelX < width) {
+                    let edgeX = x + startRelX * scale;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX, 0);
+                    ctx.lineTo(edgeX, h);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            ctx.restore();
+
+            // 2. Center Dimensions
+            ctx.save();
             sheetData.forEach((sheet, index) => {
-                let sheetX = x + (sheet.x * scale);
-                let sheetW = sheet.w * scale;
-                let centerX = sheetX + sheetW/2;
+                let startRelX = sheet.x;
+                let endRelX = sheet.x + sheet.w;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > width) endRelX = width;
                 
-                // เส้นต่อแผ่นจะอยู่ซ้ายสุดของแผ่นถ้ามาจากขวา หรือขวาสุดถ้ามาจากซ้าย
-                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = x + relCenter * scale;
                 
-                // คำนวณขอบเขตให้อยู่แต่ในกรอบของทรงสี่เหลี่ยมด้านไม่เท่าพอดี
-                let relX = (lineX - x) / scale;
-                if (relX > width) relX = width;
-                if (relX < 0) relX = 0;
+                let ytCenter = hTL + (hTR - hTL) * (relCenter / width);
+                let ybCenter = hBL + (hBR - hBL) * (relCenter / width);
+                let yTopCanvas = groundY - (ytCenter * scale);
+                let yBotCanvas = groundY - (ybCenter * scale);
+
+                drawVerticalSheetDim(ctx, centerX, yBotCanvas, yTopCanvas, sheet.len.toFixed(2), '#16a34a');
                 
-                let actualLineX = x + (relX * scale);
-                let yt = hTL + (hTR - hTL) * (relX / width);
-                let yb = hBL + (hBR - hBL) * (relX / width);
-                
-                ctx.beginPath();
-                ctx.moveTo(actualLineX, groundY - (yb * scale)); 
-                ctx.lineTo(actualLineX, groundY - (yt * scale)); 
-                ctx.stroke();
-                
-                let textY = groundY - (yb * scale) - 20 - ((index % 3) * 15);
+                let labelY = yBotCanvas - 20 - ((index % 3) * 15);
                 ctx.fillStyle = '#d84315';
-                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
-                ctx.fillText(label, centerX, textY);
+                ctx.font = 'bold 11px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                let textStr = sheet.id.replace('#','');
+                ctx.strokeText(textStr, centerX, labelY);
+                ctx.fillText(textStr, centerX, labelY);
             });
             ctx.restore();
         }
@@ -2576,50 +2663,64 @@
         ctx.fillStyle = '#e3f2fd'; ctx.fill();
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
-        // Draw Sheets
         if (sheetData.length > 0) {
+            
+            // 1. Grid Lines
             ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.beginPath();
+            ctx.moveTo(startX + dSkew, topY);
+            ctx.lineTo(startX + dSkew + dW, topY);
+            ctx.lineTo(startX + dW, botY);
+            ctx.lineTo(startX, botY);
+            ctx.closePath();
+            ctx.clip();
             
-            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
-            
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x;
+                if (startRelX > 0 && startRelX < width) {
+                    let edgeX_bot = startX + startRelX * scale;
+                    let edgeX_top = edgeX_bot + dSkew;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX_bot, botY);
+                    ctx.lineTo(edgeX_top, topY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            ctx.restore();
+
+            // 2. Labels
+            ctx.save();
             sheetData.forEach((sheet, index) => {
-                let sheetX = startX + (sheet.x * scale);
-                let sheetW = sheet.w * scale;
-                let centerX = sheetX + sheetW/2;
+                let startRelX = sheet.x;
+                let endRelX = sheet.x + sheet.w;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > width) endRelX = width;
                 
-                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = startX + relCenter * scale;
+                let labelY = botY - 30 - ((index % 3) * 15);
                 
-                // ขีดเส้นแบ่งให้พอดีกับกรอบ
-                let relX = (lineX - startX) / scale;
-                if (relX > width) relX = width;
-                if (relX < 0) relX = 0;
+                ctx.font = 'bold 11px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                let textStr = sheet.id.replace('#','');
                 
-                let actualLineX = startX + (relX * scale);
-                
-                ctx.beginPath();
-                ctx.moveTo(actualLineX, botY);
-                // เส้นที่เฉียงขึ้นไปด้านบนตามมุม Skew
-                ctx.lineTo(actualLineX + dSkew, topY);
-                ctx.stroke();
-                
-                let textY = botY - 30 - ((index % 3) * 15);
+                ctx.strokeText(textStr, centerX + dSkew/2, labelY);
                 ctx.fillStyle = '#d84315';
-                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
-                ctx.fillText(label, centerX + dSkew/2, textY);
+                ctx.fillText(textStr, centerX + dSkew/2, labelY);
             });
             ctx.restore();
         }
         
         // Dimensions
         drawDim(ctx, startX, botY+20, startX+dW, botY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
-        // Vertical Run
         drawDim(ctx, startX-20, topY, startX-20, botY, `ยาว ${run.toFixed(2)} ม.`, 0, '#333');
-        // Skew
         if(Math.abs(skew) > 0) {
             drawDim(ctx, startX, topY-20, startX+dSkew, topY-20, `เยื้อง ${skew.toFixed(2)}`, 0, '#666');
         }
@@ -2735,35 +2836,60 @@
         drawDim(ctx, cornerX - 20, cornerY, cornerX - 20, topY, `สูง ${height.toFixed(2)} ม.`, 0, '#333');
 
         if (sheetData && sheetData.length > 0) {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
             
+            // 1. วาดเส้น Grid (ใช้ Clip เพื่อให้เส้นไม่เกินรูป)
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cornerX, cornerY); 
+            ctx.lineTo(cornerX, topY); 
+            ctx.lineTo(endX, cornerY); 
+            ctx.closePath();
+            ctx.clip();
+            
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x;
+                if (startRelX > 0 && startRelX < base) {
+                    let edgeX = startX + startRelX * scale;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX, cornerY);
+                    ctx.lineTo(edgeX, topY); 
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            ctx.restore();
+
+            // 2. วาดตัวเลขและบอกระยะตรง "กึ่งกลาง"
+            ctx.save();
             sheetData.forEach((sheet, index) => {
-                let sheetX = startX + (sheet.x * scale);
-                let sheetW = sheet.w * scale;
-                let centerX = sheetX + sheetW/2;
+                let startRelX = sheet.x;
+                let endRelX = sheet.x + sheet.w;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > base) endRelX = base;
                 
-                // คำนวณเส้นแบ่งแผ่นให้ไม่ทะลุขอบ
-                let lineX = sheetX + sheetW;
-                let relX = (lineX - startX) / scale;
-                if (relX > base) relX = base;
-                if (relX < 0) relX = 0;
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = startX + relCenter * scale;
                 
-                let actualLineX = startX + (relX * scale);
-                let yt = height * (1 - (relX / base));
+                let ytCenter = height * (1 - (relCenter / base));
+                let yTopCanvas = bottomY - (ytCenter * scale);
+
+                drawVerticalSheetDim(ctx, centerX, bottomY, yTopCanvas, sheet.len.toFixed(2), '#16a34a');
+
+                let labelY = bottomY - 12;
+                ctx.font = 'bold 11px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 
-                ctx.beginPath();
-                ctx.moveTo(actualLineX, bottomY);
-                ctx.lineTo(actualLineX, bottomY - (yt * scale)); 
-                ctx.stroke();
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                let textStr = sheet.id.replace('#','');
+                ctx.strokeText(textStr, centerX, labelY);
                 
-                let textY = bottomY - 20 - ((index % 3) * 15);
                 ctx.fillStyle = '#d84315';
-                ctx.fillText(sheet.id, centerX, textY);
+                ctx.fillText(textStr, centerX, labelY);
             });
             ctx.restore();
         }
@@ -2898,44 +3024,64 @@
         drawDim(ctx, x+db+20, y, x+db+20, y-dh, `สูงรวม ${height.toFixed(2)} ม.`, 0, '#333');
 
         if (sheetData.length > 0) {
-            ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
             
-            sheetData.forEach((sheet, index) => {
-                let sheetX = x + (sheet.x * scale);
-                let sheetW = sheet.w * scale;
-                let centerX = sheetX + sheetW/2;
-                
-                let lineX = sheet.id.toString().startsWith('R') ? sheetX : (sheetX + sheetW);
-                
-                // คำนวณความสูงตามทรงหน้าจั่วให้พอดีขอบ
-                let relX = (lineX - x) / scale;
-                if (relX > base) relX = base;
-                if (relX < 0) relX = 0;
-                
-                let actualLineX = x + (relX * scale);
-                let yt;
-                if (relX <= base/2) {
-                    yt = height * (relX / (base/2));
-                } else {
-                    yt = height * ((base - relX) / (base/2));
+            // 1. Grid Lines
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(x, y); 
+            ctx.lineTo(x + db, y); 
+            ctx.lineTo(x + db/2, y - dh); 
+            ctx.closePath();
+            ctx.clip();
+            
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x;
+                if (startRelX > 0 && startRelX < base) {
+                    let edgeX = x + startRelX * scale;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX, y);
+                    ctx.lineTo(edgeX, y - dh);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
                 }
+            });
+            ctx.restore();
+
+            // 2. Center Dimensions
+            ctx.save();
+            sheetData.forEach((sheet, index) => {
+                let startRelX = sheet.x;
+                let endRelX = sheet.x + sheet.w;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > base) endRelX = base;
                 
-                ctx.beginPath();
-                ctx.moveTo(actualLineX, y);
-                ctx.lineTo(actualLineX, y - (yt * scale)); 
-                ctx.stroke();
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = x + relCenter * scale;
                 
-                let textY = y - (dh * 0.2) + ((index % 3) * 25);
+                let ytCenter;
+                if (relCenter <= base/2) {
+                    ytCenter = height * (relCenter / (base/2));
+                } else {
+                    ytCenter = height * ((base - relCenter) / (base/2));
+                }
+                let yTopCanvas = y - (ytCenter * scale);
+
+                drawVerticalSheetDim(ctx, centerX, y, yTopCanvas, sheet.len.toFixed(2), '#16a34a');
+
+                let labelY = y - 12;
                 ctx.fillStyle = '#d84315';
+                ctx.font = 'bold 11px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
                 
-                // ตัดเครื่องหมาย # ออกหากชื่อแผ่นถูกขึ้นต้นด้วย L หรือ R อยู่แล้ว
-                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
-                ctx.fillText(label, centerX, textY);
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                let textStr = sheet.id.replace('#','');
+                ctx.strokeText(textStr, centerX, labelY);
+                ctx.fillText(textStr, centerX, labelY);
             });
             ctx.restore();
         }
@@ -2974,45 +3120,99 @@
         drawDim(ctx, x-20, bottomY, x-20, bottomY-dHL, `L ${hL.toFixed(2)}`, 0, '#333');
         drawDim(ctx, x+dW+20, bottomY, x+dW+20, bottomY-dHR, `R ${hR.toFixed(2)}`, 0, '#333');
 
-        // Draw Sheets
         if (sheetData.length > 0) {
+            
+            // 1. Grid Lines
             ctx.save();
-            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-            ctx.lineWidth = 1;
-            ctx.font = '10px Sarabun';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            let isRightToLeft = sheetData[0].id.toString().startsWith('R');
-            
+            ctx.beginPath();
+            ctx.moveTo(x, bottomY);
+            ctx.lineTo(x + dW, bottomY);
+            ctx.lineTo(x + dW, bottomY - dHR);
+            ctx.lineTo(x, bottomY - dHL);
+            ctx.closePath();
+            ctx.clip();
+
+            sheetData.forEach(sheet => {
+                let startRelX = sheet.x;
+                if (startRelX > 0 && startRelX < width) {
+                    let edgeX = x + startRelX * scale;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 3]);
+                    ctx.moveTo(edgeX, bottomY);
+                    ctx.lineTo(edgeX, bottomY - Math.max(dHL, dHR));
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+            ctx.restore();
+
+            // 2. Center Dimensions
+            ctx.save();
             sheetData.forEach((sheet, index) => {
-                let sheetX = x + (sheet.x * scale);
-                let sheetW = sheet.w * scale;
-                let centerX = sheetX + sheetW/2;
+                let startRelX = sheet.x;
+                let endRelX = sheet.x + sheet.w;
+                if (startRelX < 0) startRelX = 0;
+                if (endRelX > width) endRelX = width;
                 
-                // เส้นขอบแผ่น: ถ้าปูจากขวามาซ้าย ให้ตีเส้นขอบซ้ายของแผ่น, ถ้าจากซ้าย ให้ตีเส้นขวา
-                let lineX = isRightToLeft ? sheetX : (sheetX + sheetW);
+                let relCenter = (startRelX + endRelX) / 2;
+                let centerX = x + relCenter * scale;
                 
-                // ปรับให้เส้นหยุดพอดีกับขอบบน
-                let relX = (lineX - x) / scale;
-                if (relX > width) relX = width;
-                if (relX < 0) relX = 0;
-                
-                let actualLineX = x + (relX * scale);
-                let yt = hL + (hR - hL) * (relX / width);
-                
-                ctx.beginPath();
-                ctx.moveTo(actualLineX, bottomY);
-                ctx.lineTo(actualLineX, bottomY - (yt * scale));
-                ctx.stroke();
-                
-                let textY = bottomY - 30 - ((index % 3) * 15);
+                let ytCenter = hL + (hR - hL) * (relCenter / width);
+                let yTopCanvas = bottomY - (ytCenter * scale);
+
+                drawVerticalSheetDim(ctx, centerX, bottomY, yTopCanvas, sheet.len.toFixed(2), '#16a34a');
+
+                let labelY = bottomY - 12;
                 ctx.fillStyle = '#d84315';
-                let label = sheet.id.toString().startsWith('L') || sheet.id.toString().startsWith('R') ? sheet.id : `#${sheet.id}`;
-                ctx.fillText(label, centerX, textY);
+                ctx.font = 'bold 11px Sarabun';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.lineWidth = 3;
+                let textStr = sheet.id.replace('#','');
+                ctx.strokeText(textStr, centerX, labelY);
+                ctx.fillText(textStr, centerX, labelY);
             });
             ctx.restore();
         }
+    }
+
+    function drawVerticalSheetDim(ctx, x, yBottom, yTop, text, color = '#16a34a') {
+        if (Math.abs(yBottom - yTop) < 15) return; // Skip if line is too short to draw arrows clearly
+        ctx.save();
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, yBottom);
+        ctx.lineTo(x, yTop);
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        drawArrow(ctx, x, yBottom, Math.PI / 2); // Down
+        drawArrow(ctx, x, yTop, -Math.PI / 2); // Up
+
+        ctx.font = '11px Sarabun';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        let midY = (yBottom + yTop) / 2;
+        ctx.translate(x - 8, midY); // Move slightly to the left of the line
+        ctx.rotate(-Math.PI / 2); // Read bottom to top
+        
+        // Glow effect for readability against background grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.strokeText(text, 0, 0);
+        
+        ctx.fillStyle = color;
+        ctx.fillText(text, 0, 0);
+        
+        ctx.restore();
     }
 
     function drawDim(ctx, x1, y1, x2, y2, text, offset, color = '#334155', isSlope = false) {

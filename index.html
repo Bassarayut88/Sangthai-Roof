@@ -964,11 +964,11 @@
                         </h2>
                         <div class="flex gap-2 mode-selector">
                             <div>
-                                <input type="radio" name="calcMode" id="modeSpacing" value="spacing" onchange="updateMode()">
+                                <input type="radio" name="calcMode" id="modeSpacing" value="spacing" checked onchange="updateMode()">
                                 <label for="modeSpacing"><i class="fa-solid fa-ruler-horizontal"></i> ใช้ระยะห่างย้ำ</label>
                             </div>
                             <div>
-                                <input type="radio" name="calcMode" id="modeDegree" value="degree" checked onchange="updateMode()">
+                                <input type="radio" name="calcMode" id="modeDegree" value="degree" onchange="updateMode()">
                                 <label for="modeDegree"><i class="fa-solid fa-circle-nodes"></i> ใช้องศาย้ำ</label>
                             </div>
                         </div>
@@ -980,15 +980,15 @@
                             <input type="number" id="backOverhang" class="input-box" value="0" oninput="calculate()">
                         </div>
                         
-                        <div class="relative transition-all duration-300 opacity-50" id="boxSpacing">
+                        <div class="relative transition-all duration-300" id="boxSpacing">
                              <label class="input-label text-blue-700">ระยะห่างย้ำ (ซม.)</label>
-                             <input type="number" id="crimpSpacing" class="input-box bg-blue-50 border-blue-300 text-blue-800" value="3.02" step="0.1" disabled onchange="validateSpacing()" oninput="calculate()">
+                             <input type="number" id="crimpSpacing" class="input-box bg-blue-50 border-blue-300 text-blue-800" value="3.02" step="0.1" onchange="validateSpacing()" oninput="calculate()">
                              <div class="text-[10px] text-red-500 absolute right-0 -bottom-5">*ขั้นต่ำ 1.7</div>
                         </div>
 
-                        <div class="relative transition-all duration-300" id="boxDegree">
+                        <div class="relative transition-all duration-300 opacity-50" id="boxDegree">
                             <label class="input-label text-amber-700">องศา/ย้ำ (°)</label>
-                            <input type="number" id="targetDegree" class="input-box bg-amber-50 border-amber-300 text-amber-800" value="6" step="0.01" oninput="calculate()">
+                            <input type="number" id="targetDegree" class="input-box bg-amber-50 border-amber-300 text-amber-800" value="6.4" step="0.01" disabled oninput="calculate()">
                         </div>
                     </div>
                 </div>
@@ -1025,7 +1025,7 @@
                                 <label class="input-label flex justify-between">ฐานรวม (ซม.) <span class="font-normal opacity-70">(Total Run)</span></label>
                                 <div class="stepper-container" id="grp-totalBase">
                                     <button class="stepper-btn" onclick="stepValue('totalBase', -1)"><i class="fa-solid fa-minus"></i></button>
-                                    <input type="number" id="totalBase" class="input-box-stepper" value="200" oninput="calculate()">
+                                    <input type="number" id="totalBase" class="input-box-stepper" value="100" oninput="calculate()">
                                     <button class="stepper-btn" onclick="stepValue('totalBase', 1)"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
@@ -1045,7 +1045,7 @@
                                 <label class="input-label flex justify-between text-slate-700">ขนาดแป (ซม.) <span class="font-normal opacity-70">(Purlin)</span></label>
                                 <div class="stepper-container bg-slate-50">
                                     <button class="stepper-btn" onclick="stepValue('purlinSize', -1)"><i class="fa-solid fa-minus"></i></button>
-                                    <input type="number" id="purlinSize" class="input-box-stepper" value="5" oninput="calculate()">
+                                    <input type="number" id="purlinSize" class="input-box-stepper" value="2.5" step="0.5" oninput="calculate()">
                                     <button class="stepper-btn" onclick="stepValue('purlinSize', 1)"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
@@ -1082,7 +1082,7 @@
                                     <label class="input-label flex justify-between text-indigo-700">รัศมีโค้ง (R) ซม.</label>
                                     <div class="stepper-container border-indigo-300 shadow-[0_0_5px_rgba(79,70,229,0.15)]">
                                         <button class="stepper-btn text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50" onclick="stepValue('customR', -1)"><i class="fa-solid fa-minus"></i></button>
-                                        <input type="number" id="customR" class="input-box-stepper text-indigo-700 font-bold" value="15" step="0.5" oninput="calculate()">
+                                        <input type="number" id="customR" class="input-box-stepper text-indigo-700 font-bold" value="24" step="0.5" oninput="calculate()">
                                         <button class="stepper-btn text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50" onclick="stepValue('customR', 1)"><i class="fa-solid fa-plus"></i></button>
                                     </div>
                                 </div>
@@ -1171,21 +1171,16 @@
 
         const canvas = document.getElementById('awningCanvas');
         const ctx = canvas.getContext('2d');
-        let calcMode = 'degree';
-
-        function getNum(id, defaultVal) {
-            const val = parseFloat(document.getElementById(id).value);
-            return isNaN(val) ? defaultVal : val;
-        }
+        let calcMode = 'spacing';
 
         function stepValue(id, amount) {
             const el = document.getElementById(id);
-            let val = parseFloat(el.value);
-            if(isNaN(val)) val = 0;
+            let val = parseFloat(el.value) || 0;
             let newVal = val + amount;
             
             if (newVal < 0) newVal = 0;
             if (id === 'customR' && newVal < 1) newVal = 1; 
+            if (id === 'purlinSize' && newVal < 0) newVal = 0; 
             
             el.value = newVal;
             calculate();
@@ -1216,67 +1211,79 @@
         }
 
         function calculate() {
-            const W_total = getNum('totalBase', 200);
-            const H_back = getNum('backHeight', 50);
+            const W_total = parseFloat(document.getElementById('totalBase').value) || 200;
+            const H_back = parseFloat(document.getElementById('backHeight').value) || 50;
+            const purlinSize = parseFloat(document.getElementById('purlinSize').value) || 0;
+
+            const inputCurveBase = parseFloat(document.getElementById('curveBase').value) || 20;
+            const inputCurveHeight = parseFloat(document.getElementById('curveHeight').value) || 20;
+            let R = parseFloat(document.getElementById('customR').value) || 24;
+
+            const H_front_hang = parseFloat(document.getElementById('frontOverhang').value) || 10;
+            const L_back_hang = parseFloat(document.getElementById('backOverhang').value) || 0;
+
+            // ==========================================
+            // 1. REAL MATH (คำนวณโครงสร้างจริง เพื่อแสดงตัวเลขที่ถูกต้อง)
+            // ==========================================
+            // แปด้านหน้ามีความหนา ทำให้ดันโค้งร่นเข้ามา จึงต้องบวกเข้าที่ฐานโค้ง (แกน X)
+            let W_curve_real = inputCurveBase + purlinSize; 
             
-            const purlinSize = getNum('purlinSize', 5);
-
-            // ค่าที่ผู้ใช้กรอกสำหรับแสดงผล
-            const inputCurveBase = getNum('curveBase', 20);
-            const inputCurveHeight = getNum('curveHeight', 20);
-
-            // บวกขนาดแปเข้าไปในฐานโค้งและสูงหน้าโค้งเพื่อใช้คำนวณองศาที่ถูกต้อง
-            let W_curve = inputCurveBase + purlinSize;
-            let H_curve = inputCurveHeight + purlinSize;
+            // **แก้ไขสำคัญ:** ความสูงหน้าโค้ง (แกน Y) วัดจากระดับเดียวกับหลังสูง จึง "ไม่ต้อง" บวกขนาดแปซ้ำอีก 
+            // (การบวกแกน Y จะทำให้มุมเพี้ยนเป็น 70 องศาแบบรอบที่แล้ว)
+            let H_curve_real = inputCurveHeight; 
             
-            let R = getNum('customR', 15);
+            if (W_curve_real > W_total) W_curve_real = W_total;
+            if (H_curve_real > H_back) H_curve_real = H_back;
 
-            const H_front_hang = getNum('frontOverhang', 10);
-            const L_back_hang = getNum('backOverhang', 0);
-
-            if (W_curve > W_total) W_curve = W_total;
-            if (H_curve > H_back) H_curve = H_back;
-
-            // 1. หาความลาดชัน (Slope) 
-            const W_straight = W_total - W_curve;
-            const H_straight_drop = H_back - H_curve;
+            const W_straight_real = W_total - W_curve_real;
+            const H_straight_drop_real = H_back - H_curve_real;
             
-            const slopeAngleRad = Math.atan2(H_straight_drop, W_straight);
-            const slopeAngleDeg = slopeAngleRad * (180 / Math.PI); 
+            const slopeAngleRad_real = Math.atan2(H_straight_drop_real, W_straight_real);
+            const slopeAngleDeg_real = slopeAngleRad_real * (180 / Math.PI); 
 
-            // 2. ลอจิกแบบ AutoCAD (Tangent Smooth Bend)
-            let sweepAngleRad = (Math.PI / 2) - slopeAngleRad;
-            let sweepAngleDeg = sweepAngleRad * (180 / Math.PI); 
+            let sweepAngleRad_real = (Math.PI / 2) - slopeAngleRad_real;
+            let sweepAngleDeg_real = sweepAngleRad_real * (180 / Math.PI); 
 
-            sweepAngleDeg = Math.round(sweepAngleDeg);
-            sweepAngleRad = sweepAngleDeg * (Math.PI / 180); 
+            // ปัดเศษองศาส่วนโค้ง (Arc Angle) ตามหลักการ: < 0.5 ปัดลง, >= 0.5 ปัดขึ้น
+            // จะทำให้ค่า 68.839 ปัดขึ้นกลายเป็น 69 องศา พอดี
+            let roundedArcAngle = Math.round(sweepAngleDeg_real);
 
-            // 3. ความยาวโค้งจริง
-            const arcLength = R * sweepAngleRad; 
+            // ความยาวส่วนโค้ง "ต้อง" คำนวณจากองศาที่แม่นยำ (68.839) เพื่อให้ได้ 24.03 ซม. (ตรงกับ 0.24 ใน CAD)
+            const arcLength_real = R * sweepAngleRad_real; 
+
+            // ==========================================
+            // 2. DRAW MATH (สำหรับการวาดภาพให้เหมือนเวอร์ชันดั้งเดิม)
+            // ==========================================
+            let W_curve_draw = inputCurveBase + purlinSize;
+            let H_curve_draw = inputCurveHeight;
+            if (W_curve_draw > W_total) W_curve_draw = W_total;
+            if (H_curve_draw > H_back) H_curve_draw = H_back;
+
+            const W_straight_draw = W_total - W_curve_draw;
+            const H_straight_drop_draw = H_back - H_curve_draw;
+            
+            const slopeAngleRad_draw = Math.atan2(H_straight_drop_draw, W_straight_draw);
+            let sweepAngleRad_draw = (Math.PI / 2) - slopeAngleRad_draw;
 
             // --- คำนวณจำนวนย้ำ (Crimps) ---
             let inputDegreeVal = 0;
 
             if (calcMode === 'degree') {
-                inputDegreeVal = getNum('targetDegree', 6);
+                inputDegreeVal = parseFloat(document.getElementById('targetDegree').value) || 6.4;
             } else {
-                let targetSpacing = getNum('crimpSpacing', 3.02);
+                let targetSpacing = parseFloat(document.getElementById('crimpSpacing').value) || 3.02;
                 if (targetSpacing < 1.7) targetSpacing = 1.7;
-                inputDegreeVal = sweepAngleDeg / ((arcLength / targetSpacing) + 1);
+                inputDegreeVal = sweepAngleDeg_real / ((arcLength_real / targetSpacing) + 1);
             }
 
             if (inputDegreeVal <= 0.01) inputDegreeVal = 0.01;
 
-            let rawRatio = sweepAngleDeg / inputDegreeVal;
-            let roundedRatio = Math.round(rawRatio);
-            
-            // ✅ เปลี่ยนแปลงตามคำขอ: จำนวนย้ำไม่ต้อง - 1
-            let actualCrimps = roundedRatio; 
-            if (actualCrimps < 2) actualCrimps = 2; // ป้องกันส่วนเป็น 0 (ต้องมีอย่างน้อย 2 จุดย้ำ เพื่อให้เกิด 1 ช่อง)
+            let rawRatio = sweepAngleDeg_real / inputDegreeVal;
+            let actualCrimps = Math.round(rawRatio);
+            if (actualCrimps < 2) actualCrimps = 2;
 
-            // ✅ เปลี่ยนแปลงตามคำขอ: ระยะห่างย้ำใช้ ความยาวโค้ง / (จำนวนย้ำ - 1)
-            let realSpacing = arcLength / (actualCrimps - 1);
-            let realDegree = sweepAngleDeg / (actualCrimps - 1);
+            let realSpacing = arcLength_real / (actualCrimps - 1);
+            let realDegree = sweepAngleDeg_real / (actualCrimps - 1);
 
             // อัปเดต Input กลับไปให้ผู้ใช้เห็น
             if (calcMode === 'spacing') {
@@ -1286,26 +1293,27 @@
             }
 
             // อัปเดตตัวเลขบนหน้าจอ
-            document.getElementById('resSlopeAngle').innerText = slopeAngleDeg.toFixed(2);
-            document.getElementById('resArcAngle').innerText = sweepAngleDeg.toFixed(0);
+            document.getElementById('resSlopeAngle').innerText = slopeAngleDeg_real.toFixed(2);
+            document.getElementById('resArcAngle').innerText = roundedArcAngle.toString(); // แสดงองศาที่ปัดเศษแล้ว (69 องศา)
             document.getElementById('resRadius').innerText = R.toFixed(2);
-            document.getElementById('arcLengthDisp').innerText = arcLength.toFixed(2);
+            document.getElementById('arcLengthDisp').innerText = arcLength_real.toFixed(2); // แสดงระยะ 24.03 (ตรงกับ 0.240)
             
             document.getElementById('resCrimpCount').innerText = actualCrimps;
             document.getElementById('displayRealSpacing').innerText = realSpacing.toFixed(2);
             document.getElementById('displayRealDegree').innerText = realDegree.toFixed(2);
 
             // สรุปความยาว
-            const straightLen = Math.sqrt(W_straight**2 + H_straight_drop**2);
+            const straightLen_real = Math.sqrt(W_straight_real**2 + H_straight_drop_real**2);
             const backTotal = L_back_hang;
             document.getElementById('bk_back').innerText = backTotal.toFixed(2);
-            document.getElementById('bk_straight').innerText = straightLen.toFixed(2);
-            document.getElementById('bk_arc').innerText = arcLength.toFixed(2);
+            document.getElementById('bk_straight').innerText = straightLen_real.toFixed(2);
+            document.getElementById('bk_arc').innerText = arcLength_real.toFixed(2);
             document.getElementById('bk_front').innerText = H_front_hang.toFixed(2);
-            const totalLen = backTotal + straightLen + arcLength + H_front_hang;
+            const totalLen = backTotal + straightLen_real + arcLength_real + H_front_hang;
             document.getElementById('totalSheetLength').innerText = (totalLen / 100).toFixed(2);
 
-            drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, actualCrimps, purlinSize, inputCurveBase, inputCurveHeight);
+            // ส่ง DRAW MATH ไปวาด
+            drawAwning(W_total, H_back, W_straight_draw, H_straight_drop_draw, H_front_hang, L_back_hang, slopeAngleRad_draw, R, sweepAngleRad_draw, actualCrimps, purlinSize, inputCurveBase, inputCurveHeight);
         }
 
         function drawAwning(W_total, H_back, W_straight, H_straight_drop, H_front_hang, L_back_hang, slopeAngleRad, R, sweepAngleRad, segments, purlinSize, inputCurveBase, inputCurveHeight) {
@@ -1320,19 +1328,16 @@
             if (availW <= 0 || availH <= 0) return;
             if (isNaN(R) || R <= 0) return;
 
-            // พิกัดเรขาคณิตที่แท้จริง
+            // พิกัดเรขาคณิต
             const StartArcX = W_straight;
             const StartArcY = H_straight_drop;
             
-            // หาจุดศูนย์กลางของส่วนโค้ง
             const Cx = StartArcX - R * Math.sin(slopeAngleRad);
             const Cy = StartArcY + R * Math.cos(slopeAngleRad);
             
-            // มุมวาดใน Canvas
             const angStart = Math.atan2(StartArcY - Cy, StartArcX - Cx); 
             const angEnd = 0; 
             
-            // จุดจบของส่วนโค้ง
             const EndArcX = Cx + R;
             const EndArcY = Cy;
 
@@ -1348,28 +1353,23 @@
 
             ctx.lineJoin = 'round'; ctx.lineCap = 'round';
 
-            // 1. วาดโครงสร้างหลังคา
+            // เส้นโครงสร้าง (จำลองแบบไม่รวมแป เพื่อให้เห็นจุดตัด)
+            ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
             const BackTipX = -L_back_hang * Math.cos(slopeAngleRad);
             const BackTipY = -L_back_hang * Math.sin(slopeAngleRad);
-            
-            // เส้นชายหลัง
-            ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
             ctx.moveTo(trX(BackTipX), trY(BackTipY)); ctx.lineTo(trX(0), trY(0)); ctx.stroke();
             
-            // เส้นแผ่นตรง (Straight)
             ctx.beginPath(); ctx.moveTo(trX(0), trY(0));
             ctx.lineTo(trX(StartArcX), trY(StartArcY)); ctx.stroke();
             
-            // เส้นโค้ง (Tangent Arc)
             ctx.beginPath(); 
             ctx.strokeStyle = '#dc2626'; 
             ctx.lineWidth = 5;
             ctx.arc(trX(Cx), trY(Cy), R * scale, angStart, angEnd, false); 
             ctx.stroke();
             
-            // ✅ ปรับปรุงการวาดย้ำ: วาดเส้นตามจำนวนช่องว่าง (Spaces = จำนวนย้ำ - 1)
             let visualSpaces = segments - 1; 
-            if (visualSpaces > 1) { // ต้องมีช่องว่างมากกว่า 1 ถึงจะมีเส้นแบ่งข้างในโค้ง
+            if (visualSpaces > 1) { 
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
                 for (let i = 1; i < visualSpaces; i++) {
                     const theta = angStart + sweepAngleRad * (i / visualSpaces);
@@ -1380,54 +1380,46 @@
                 }
             }
             
-            // เส้นชายหน้า (Front Hang)
             ctx.beginPath(); ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4;
             ctx.moveTo(trX(EndArcX), trY(EndArcY)); ctx.lineTo(trX(EndArcX), trY(EndArcY + H_front_hang)); ctx.stroke();
 
-            // --- วาดรูปแป (Purlins) ---
+            // Purlins
             if (purlinSize > 0) {
                 const ps = purlinSize * scale;
                 ctx.fillStyle = '#f1f5f9'; 
                 ctx.strokeStyle = '#334155'; 
                 ctx.lineWidth = 1.5;
 
-                // 0. แปตัวหลังสุด (ณ จุดต้นทาง 0,0)
+                // 1. แปตัวหลัง (ณ ตำแหน่งเสาหลังสูง)
                 ctx.save();
                 ctx.translate(trX(0), trY(0));
-                ctx.rotate(slopeAngleRad); // หมุนตามความลาดชัน
-                ctx.beginPath();
-                ctx.rect(-ps, 0, ps, ps);
+                ctx.rotate(slopeAngleRad); 
+                ctx.beginPath(); ctx.rect(-ps, 0, ps, ps);
                 ctx.fill(); ctx.stroke();
-                // วาดกากบาทสัญลักษณ์เหล็กกล่อง
                 ctx.beginPath(); ctx.moveTo(-ps, 0); ctx.lineTo(0, ps); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
                 ctx.restore();
 
-                // 1. แปตัวบน (หมุนเอียงรับองศาหลังคา)
+                // 2. แปก่อนเข้าโค้ง
                 ctx.save();
                 ctx.translate(trX(StartArcX), trY(StartArcY));
-                ctx.rotate(slopeAngleRad); // หมุนตามความลาดชัน
-                ctx.beginPath();
-                ctx.rect(-ps, 0, ps, ps);
+                ctx.rotate(slopeAngleRad); 
+                ctx.beginPath(); ctx.rect(-ps, 0, ps, ps);
                 ctx.fill(); ctx.stroke();
-                // วาดกากบาทสัญลักษณ์เหล็กกล่อง
                 ctx.beginPath(); ctx.moveTo(-ps, 0); ctx.lineTo(0, ps); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
                 ctx.restore();
 
-                // 2. แปตัวล่าง (แนวตั้งตรงก่อนเข้าชายหน้า)
+                // 3. แปตัวล่าง (แนวตั้งตรงก่อนเข้าชายหน้า)
                 ctx.save();
                 ctx.translate(trX(EndArcX), trY(EndArcY));
-                ctx.beginPath();
-                ctx.rect(-ps, 0, ps, ps);
+                ctx.beginPath(); ctx.rect(-ps, 0, ps, ps);
                 ctx.fill(); ctx.stroke();
-                // วาดกากบาทสัญลักษณ์เหล็กกล่อง
                 ctx.beginPath(); ctx.moveTo(-ps, 0); ctx.lineTo(0, ps); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
                 ctx.restore();
             }
 
-            // 2. Beautiful Dimensions
             function drawArrowLine(x1, y1, x2, y2, text, color, offset=0) {
                 ctx.fillStyle = color; ctx.strokeStyle = color; ctx.lineWidth = 1;
                 let dx = x2 - x1; let dy = y2 - y1;
@@ -1468,15 +1460,16 @@
                 ctx.fill();
             }
 
-            // ปรับจุดเริ่มต้นเส้นบอกระยะ H_back ให้ชี้จาก "ใต้แป" ตามที่ต้องการ
-            drawArrowLine(trX(0), trY(purlinSize), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
+            // คำนวณระยะแนวตั้งจากยอดหลังคาถึงใต้แป เพื่อวัดเส้นบอกระยะ
+            const backPurlinBottomY = purlinSize / Math.cos(slopeAngleRad); 
+            drawArrowLine(trX(0), trY(backPurlinBottomY), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
+            
             drawArrowLine(trX(0), trY(EndArcY+H_front_hang), trX(EndArcX), trY(EndArcY+H_front_hang), W_total + " ซม.", '#64748b', -30);
 
-            // ใช้ค่าที่ผู้ใช้กรอกมาแสดงผลบนเส้นบอกระยะตรงๆ เพื่อไม่ให้เกิดความสับสน
+            // วาดเส้นบอกระยะหลบกรอบแปเหมือนเวอร์ชัน V1
             drawArrowLine(trX(EndArcX), trY(StartArcY + purlinSize), trX(EndArcX), trY(EndArcY), Math.max(0, inputCurveHeight).toFixed(1) + " ซม.", '#dc2626', -45);
             drawArrowLine(trX(StartArcX), trY(EndArcY), trX(EndArcX - purlinSize), trY(EndArcY), Math.max(0, inputCurveBase).toFixed(1) + " ซม.", '#dc2626', 30);
 
-            // วาดแสดงรัศมี (R) ตรงกลางโค้ง
             const midTheta = angStart + sweepAngleRad / 2;
             const midX = Cx + R * Math.cos(midTheta);
             const midY = Cy + R * Math.sin(midTheta);
@@ -1501,7 +1494,6 @@
             ctx.fillText(rText, 0, 0);
             ctx.restore();
 
-            // เส้นประตีกรอบ
             ctx.setLineDash([2,2]); ctx.strokeStyle='rgba(220, 38, 38, 0.3)'; ctx.lineWidth=1;
             ctx.beginPath(); 
             ctx.moveTo(trX(StartArcX), trY(StartArcY)); ctx.lineTo(trX(EndArcX), trY(StartArcY)); 
@@ -1510,9 +1502,7 @@
         }
 
         window.addEventListener('resize', () => { calculate(); });
-        
-        // Ensure UI matches default selection on first load before calculating
-        updateMode(); 
+        calculate();
     </script>
 </body>
 </html>

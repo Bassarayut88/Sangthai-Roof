@@ -1854,6 +1854,7 @@
         let sheetW = 0;
         let isKL = false;
         let profileName = "";
+        let purlinSpacing = 0; // แก้ไข: ประกาศตัวแปรระดับ Scope ของ Function เพื่อให้ใช้งานร่วมกันได้ทุกบรรทัด
 
         if (currentMode !== 'louver') {
             let profileSelect = document.getElementById('sheetProfile');
@@ -1880,7 +1881,8 @@
                 }
             }
 
-            let purlinSpacing = parseFloat(document.getElementById('purlinSpacing').value) || 0;
+            // นำคำว่า let ออกเพื่อเก็บค่าลงตัวแปรที่ประกาศไว้ข้างบนสุด
+            purlinSpacing = parseFloat(document.getElementById('purlinSpacing').value) || 0;
             if (isKL && purlinSpacing <= 0) {
                 showWarning("⚠️ กรุณาระบุระยะ @ แป ที่ถูกต้อง (มากกว่า 0)");
                 return;
@@ -2622,6 +2624,7 @@
 
             if (isKL) {
                 if (sheetData && sheetData.length > 0) {
+                    // ตอนนี้ purlinSpacing ดึงค่ามาคำนวณได้อย่างถูกต้องแล้ว จะไม่เกิดค่า NaN
                     connectorCount = sheetData.reduce((sum, sheet) => sum + (Math.ceil(sheet.len / purlinSpacing) + 1), 0);
                     connectorsPerSheet = Math.ceil(maxLen / purlinSpacing) + 1; 
                 } else {

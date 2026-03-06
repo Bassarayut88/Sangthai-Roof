@@ -512,31 +512,49 @@
                         <input type="radio" name="roofType" value="awning">
                         9. ย้ำโค้ง (Awning)
                     </label>
+                    <label class="type-option" id="opt-louver" onclick="toggleRoofType('louver')" style="background-color: #f0fdf4; border-color: #059669; color: #047857;">
+                        <input type="radio" name="roofType" value="louver">
+                        10. บานเกล็ด (Louver)
+                    </label>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>1. เลือกรุ่นแผ่น (Profile)</label>
-                <select id="sheetProfile" onchange="updateModelInfo()">
-                    <option value="" disabled selected>-- กรุณาเลือกรุ่น --</option>
-                    <optgroup label="ST COOLING ROOF (หลังคาติดฉนวน PU)">
-                        <option value="0.75|3">ST-25-750PU (75 ซม.)</option>
-                        <option value="0.76|3">ST-25-760PU / ST-27 (76 ซม.)</option>
-                        <option value="0.76|2">ST-32-760PU / ST-40 (76 ซม.)</option>
-                        <option value="0.30|3">ST-SNAPLOCK 300-PU (30 ซม.)</option>
-                    </optgroup>
-                    <optgroup label="ROOF PROFILE (หลังคาลอนเปลือย)">
-                        <option value="0.76|3">ST-25-760 ลอนมาตรฐาน (76 ซม.)</option>
-                        <option value="0.75|3">ST-25-750 ลอนนิยม (75 ซม.)</option>
-                        <option value="0.75|5">ST-SPAIN-750 ลอนสเปน (75 ซม.)</option>
-                        <option value="0.30|2">ST-SNAPLOCK-300 (30 ซม.)</option>
-                    </optgroup>
-                    <option value="custom|0">กำหนดความกว้างเอง...</option>
-                </select>
-                <div id="modelInfo" class="model-info"></div>
-                <div id="customInputBox" class="custom-width-box">
-                    <label>ระบุความกว้างสุทธิ (เมตร):</label>
-                    <input type="number" id="customVal" placeholder="0.76" step="0.01">
+            <!-- Profile Group for Roofs -->
+            <div id="main-profile-group">
+                <div class="form-group">
+                    <label>1. เลือกรุ่นแผ่น (Profile)</label>
+                    <select id="sheetProfile" onchange="updateModelInfo()">
+                        <option value="" disabled selected>-- กรุณาเลือกรุ่น --</option>
+                        <optgroup label="ST COOLING ROOF (หลังคาติดฉนวน PU)">
+                            <option value="0.75|3">ST-25-750PU (75 ซม.)</option>
+                            <option value="0.76|3">ST-25-760PU / ST-27 (76 ซม.)</option>
+                            <option value="0.76|2">ST-32-760PU / ST-40 (76 ซม.)</option>
+                            <option value="0.75|3|CONN">ST-38-750PU (75 ซม.) - ระบบ Connector</option>
+                            <option value="0.30|3">ST-SNAPLOCK 300-PU (30 ซม.)</option>
+                        </optgroup>
+                        <optgroup label="KL/CONNECTOR PROFILE (ระบบคลิปล็อค)">
+                            <option value="0.70|5|CONN">ST-39-700KL (70 ซม.) - ระบบคลิปล็อค</option>
+                        </optgroup>
+                        <optgroup label="ROOF PROFILE (หลังคาลอนเปลือย)">
+                            <option value="0.76|3">ST-25-760 ลอนมาตรฐาน (76 ซม.)</option>
+                            <option value="0.75|3">ST-25-750 ลอนนิยม (75 ซม.)</option>
+                            <option value="0.75|5">ST-SPAIN-750 ลอนสเปน (75 ซม.)</option>
+                            <option value="0.75|3|CONN">ST-38-750 (75 ซม.) - ระบบ Connector</option>
+                            <option value="0.30|2">ST-SNAPLOCK-300 (30 ซม.)</option>
+                        </optgroup>
+                        <option value="custom|0">กำหนดความกว้างเอง...</option>
+                    </select>
+                    <div id="modelInfo" class="model-info"></div>
+                    <div id="customInputBox" class="custom-width-box">
+                        <label>ระบุความกว้างสุทธิ (เมตร):</label>
+                        <input type="number" id="customVal" placeholder="0.76" step="0.01">
+                    </div>
+                </div>
+
+                <!-- ช่องกรอกระยะแป (จะแสดงเมื่อเลือกรุ่นระบบคลิปล็อค/Connector) -->
+                <div id="purlinSpacingBox" class="form-group" style="display: none; background: #e3f2fd; padding: 12px; border-radius: 8px; border: 1px dashed #2196f3; margin-top: 10px;">
+                    <label style="color: #0d47a1;">ระยะ @ แป (ม.) - สำหรับคำนวณ Connector</label>
+                    <input type="number" id="purlinSpacing" placeholder="เช่น 1.0" step="0.1" value="1.0">
                 </div>
             </div>
 
@@ -633,7 +651,7 @@
                     <input type="number" id="paraRun" placeholder="จั่วถึงปลายเสา" step="0.01">
                 </div>
                 <div class="form-group">
-                    <label>4. ระยะเยื้องศูนย์ (Skew/Offset) (ม.)</label>
+                    <label>4. ระยะเยื้องศูนย์ (Skew) (ม.)</label>
                     <input type="number" id="paraSkew" value="0" placeholder="ระยะเอียงของด้านข้าง" step="0.01">
                 </div>
             </div>
@@ -650,6 +668,41 @@
                      <div style="padding:10px; text-align:center; color:#999; font-size:0.9rem;">ยังไม่มีจุดพิกัด</div>
                 </div>
                 <button class="btn-small" onclick="clearPoints()" style="margin-top:5px; width:100%; color:red;">ล้างค่าทั้งหมด</button>
+            </div>
+
+            <!-- 10. Louver Inputs -->
+            <div id="inputs-louver" style="display:none;">
+                <div class="form-group">
+                    <label>1. เลือกรุ่นบานเกล็ด</label>
+                    <select id="louverTypeModel" onchange="updateLouverInfo()">
+                        <option value="304|5" selected>LOUVER TYPE-304 (ใช้ 5 แผ่น/เมตร)</option>
+                        <option value="457|3">LOUVER TYPE-457 (ใช้ 3 แผ่น/เมตร)</option>
+                        <option value="610|2">LOUVER TYPE-610 (ใช้ 2 แผ่น/เมตร)</option>
+                    </select>
+                    <div id="louverModelInfo" class="model-info">✓ สูง 1 เมตร จะใช้บานเกล็ด 5 แผ่น</div>
+                </div>
+                <div class="form-group">
+                    <label>2. ความกว้างช่องเปิด (ม.) แนวนอน</label>
+                    <input type="number" id="louverWidth" placeholder="ความยาวของแนวยึดบานเกล็ด" step="0.01">
+                    <div style="font-size:0.75rem; color:#888; margin-top:4px;">* หากยาวเกิน 6 เมตร ระบบจะทำการแยกแผ่นตัดให้อัตโนมัติ</div>
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูงช่องเปิด (ม.) แนวตั้ง</label>
+                    <input type="number" id="louverHeight" placeholder="ความสูงจากบนลงล่าง" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>4. ระยะ @ ขารับบานเกล็ด (ม.)</label>
+                    <input type="number" id="louverStrapSpacing" value="1.00" step="0.1">
+                </div>
+                <div class="form-group" style="background: #fdf2f8; padding: 10px; border-radius: 8px; border: 1px solid #fbcfe8;">
+                    <label style="color: #be185d;">5. รูปแบบแผ่นครอบ (Flashing)</label>
+                    <select id="louverFlashingType" style="border-color: #fbcfe8; background-color: #fff;" onchange="if(calcData.calculated) calculate()">
+                        <option value="none" selected>ไม่ติดแผ่นครอบ</option>
+                        <option value="vertical">ครอบเฉพาะเสาแนวตั้ง (ตามระยะ @)</option>
+                        <option value="perimeter">ครอบขอบรอบช่องเปิด (เต็มรูป)</option>
+                        <option value="both">ครอบเต็มรูป + เสาแนวตั้งตามระยะ @</option>
+                    </select>
+                </div>
             </div>
             
             <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
@@ -673,7 +726,7 @@
                         
                         <div style="margin-top:10px; background:#fff3e0; padding:8px; border-radius:6px; border:1px solid #ffe0b2;">
                             <label style="cursor:pointer; display:flex; align-items:center; margin:0; font-size:0.9rem; color:#e65100;">
-                                <input type="checkbox" id="straightEaves" onchange="calculate()" style="width:16px; height:16px; margin-right:8px; accent-color:#e65100;">
+                                <input type="checkbox" id="straightEaves" onchange="if(calcData.calculated) calculate()" style="width:16px; height:16px; margin-right:8px; accent-color:#e65100;">
                                 ชายคาเป็นแผ่นตรง
                             </label>
                         </div>
@@ -697,7 +750,7 @@
                 <div id="print-header" style="margin-bottom:20px; border-bottom:2px solid #E30613; padding-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                         <div>
-                            <h2 style="margin:0; color:#E30613; font-size:1.6rem;">ใบรายการคำนวณเมทัลชีท</h2>
+                            <h2 style="margin:0; color:#E30613; font-size:1.6rem;">ใบรายการคำนวณเมทัลชีท/บานเกล็ด</h2>
                             <p style="margin:5px 0 0; color:#666; font-size:0.9rem;">Sangthai Metal Sheet Calculator System <span style="font-style:italic;">(by Sarayut Boonkong)</span></p>
                         </div>
                         <div style="text-align:right; font-size:0.8rem; color:#888;">
@@ -712,20 +765,24 @@
                     <h3 style="margin-top:0; font-size:1rem; color:#2c3e50; border-bottom:1px solid #ddd; padding-bottom:5px;">📌 สรุปข้อมูลหน้างาน (Input Data)</h3>
                     <table class="print-table">
                         <tr>
-                            <td><strong>ประเภทหลังคา:</strong> <span id="print-type">-</span></td>
-                            <td><strong>รุ่นแผ่น:</strong> <span id="print-model">-</span></td>
+                            <td><strong>ประเภท/รุ่น:</strong> <span id="print-type">-</span> <span id="print-model"></span></td>
+                            <td><strong>กว้าง/ฐาน:</strong> <span id="print-width">-</span> ม.</td>
                         </tr>
                         <tr>
-                            <td><strong>ความกว้างอาคาร:</strong> <span id="print-width">-</span> ม.</td>
-                            <td><strong>ระยะราบ/ช่วงเสา:</strong> <span id="print-run">-</span> ม.</td>
+                            <td><strong>ระยะ/ช่วงเสา/สูง:</strong> <span id="print-run">-</span> ม.</td>
+                            <td><strong>ความชัน/โค้ง:</strong> <span id="print-slope-h">-</span></td>
                         </tr>
-                        <tr>
+                        <tr id="print-roof-only-row">
                             <td><strong>ยื่นชายคา:</strong> <span id="print-overhang">-</span> ม.</td>
-                            <td><strong>ความสูง/ความชัน:</strong> <span id="print-slope-h">-</span></td>
+                            <td></td>
+                        </tr>
+                        <tr id="print-louver-only-row" style="display:none;">
+                            <td><strong>ระยะ @ ขารับ:</strong> <span id="print-spacing">-</span> ม.</td>
+                            <td><strong>จำนวนแถว:</strong> <span id="print-rows">-</span> แถว</td>
                         </tr>
                         <tr>
                             <td><strong>ราคาต่อหน่วย:</strong> <span id="print-uprice">-</span> บาท</td>
-                            <td></td>
+                            <td><strong id="print-flashing-label" style="display:none;">รูปแบบแผ่นครอบ:</strong> <span id="print-flashing-type"></span></td>
                         </tr>
                     </table>
                 </div>
@@ -741,10 +798,10 @@
                         <span class="card-value primary" id="outLength">-</span>
                     </div>
                     <div class="result-card highlight">
-                        <span class="card-label">จำนวนแผ่นเมทัลชีท</span>
+                        <span class="card-label">จำนวนแผ่นเมทัลชีท/บานเกล็ด</span>
                         <span class="card-value primary" id="outCount">-</span>
                     </div>
-                    <div class="result-card">
+                    <div class="result-card" id="areaCard">
                         <span class="card-label">พื้นที่ขาย / พื้นที่จริง</span>
                         <div style="display:flex; justify-content:space-around; align-items:baseline; margin-top:5px;">
                             <div style="text-align:center;">
@@ -773,12 +830,47 @@
                 </div>
 
                 <div class="accessory-list" id="accessoryList" style="display: none;">
-                    <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบ (ประมาณการ):</strong>
-                    <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
-                        <li>สกรูยึดแผ่น (ยาว): <span id="outScrewMain" style="font-weight:bold;">0</span> ตัว <span id="screwMainDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
-                        <li>สกรูยึดครอบ (สั้น): <span id="outScrewFlash" style="font-weight:bold;">0</span> ตัว <span id="screwFlashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
-                        <li>แผ่นครอบ (Flashing) รวมราง: <span id="outFlash" style="font-weight:bold;">0</span> เมตร <span id="flashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span></li>
-                    </ul>
+                    <div id="roof-accessories">
+                        <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบหลังคา/ผนัง (ประมาณการ):</strong>
+                        <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
+                            <li id="connectorRow" style="display: none; color: #0d47a1;">
+                                ขาคลิปล็อค/คอนเนคเตอร์: <span id="outConnector" style="font-weight:bold;">0</span> ตัว 
+                                <span id="connectorDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                            </li>
+                            <li>
+                                สกรูยึดแผ่น (ยาว): <span id="outScrewMain" style="font-weight:bold;">0</span> ตัว 
+                                <span id="screwMainDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                            </li>
+                            <li>
+                                <span id="lblScrewFlash">สกรูยึดครอบ (สั้น):</span> <span id="outScrewFlash" style="font-weight:bold;">0</span> ตัว 
+                                <span id="screwFlashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                            </li>
+                            <li>แผ่นครอบ (Flashing) รวมราง: <span id="outFlash" style="font-weight:bold;">0</span> เมตร</li>
+                        </ul>
+                    </div>
+                    
+                    <div id="louver-accessories" style="display:none;">
+                        <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบบานเกล็ด:</strong>
+                        <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
+                            <li style="color: #0d47a1;">
+                                ขาจับบานเกล็ด (Louver Strap): <span id="outLouverStraps" style="font-weight:bold; font-size:1.2em;">0</span> ตัว 
+                                <div id="louverStrapDetail" style="font-size:0.85em; color:#666; margin-left:0px;">สูตร: (ความยาวรวม / ระยะ@) * 2</div>
+                            </li>
+                            <li style="color: #d84315;">
+                                สกรูสั้นยึดขาจับ: <span id="outLouverScrews" style="font-weight:bold; font-size:1.2em;">0</span> ตัว 
+                                <div style="font-size:0.85em; color:#666; margin-left:0px;">สูตร: ขาจับ 1 ตัว ใช้สกรูสั้น 2 ตัว</div>
+                            </li>
+                            <!-- Flashing Info for Louver -->
+                            <li style="color: #059669; display: none; border-top: 1px dashed #ddd; margin-top: 5px; padding-top: 5px;" id="louverFlashingRow">
+                                แผ่นครอบ (Flashing): <span id="outLouverFlashing" style="font-weight:bold; font-size:1.2em;">0</span> เมตร
+                                <div id="louverFlashingDetail" style="font-size:0.85em; color:#666; margin-left:0px;">-</div>
+                            </li>
+                            <li style="color: #059669; display: none;" id="louverFlashingScrewRow">
+                                สกรูยึดแผ่นครอบ (สั้น): <span id="outLouverFlashingScrews" style="font-weight:bold; font-size:1.2em;">0</span> ตัว
+                                <div style="font-size:0.85em; color:#666; margin-left:0px;">(ประเมินการยิงสกรู 3.5 ตัว/เมตร)</div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- Formula Box for Triangle/Trapezoid -->
@@ -795,7 +887,7 @@
                     </div>
                     <div style="max-height: 300px; overflow-y: auto;">
                         <table class="cutting-table">
-                            <thead>
+                            <thead id="cuttingTableHead">
                                 <tr>
                                     <th>แผ่นที่</th>
                                     <th>ระยะ (ม.)</th>
@@ -1225,11 +1317,7 @@
             // ==========================================
             // 1. REAL MATH (คำนวณโครงสร้างจริง เพื่อแสดงตัวเลขที่ถูกต้อง)
             // ==========================================
-            // แปด้านหน้ามีความหนา ทำให้ดันโค้งร่นเข้ามา จึงต้องบวกเข้าที่ฐานโค้ง (แกน X)
             let W_curve_real = inputCurveBase + purlinSize; 
-            
-            // **แก้ไขสำคัญ:** ความสูงหน้าโค้ง (แกน Y) วัดจากระดับเดียวกับหลังสูง จึง "ไม่ต้อง" บวกขนาดแปซ้ำอีก 
-            // (การบวกแกน Y จะทำให้มุมเพี้ยนเป็น 70 องศาแบบรอบที่แล้ว)
             let H_curve_real = inputCurveHeight; 
             
             if (W_curve_real > W_total) W_curve_real = W_total;
@@ -1244,11 +1332,7 @@
             let sweepAngleRad_real = (Math.PI / 2) - slopeAngleRad_real;
             let sweepAngleDeg_real = sweepAngleRad_real * (180 / Math.PI); 
 
-            // ปัดเศษองศาส่วนโค้ง (Arc Angle) ตามหลักการ: < 0.5 ปัดลง, >= 0.5 ปัดขึ้น
-            // จะทำให้ค่า 68.839 ปัดขึ้นกลายเป็น 69 องศา พอดี
             let roundedArcAngle = Math.round(sweepAngleDeg_real);
-
-            // ความยาวส่วนโค้ง "ต้อง" คำนวณจากองศาที่แม่นยำ (68.839) เพื่อให้ได้ 24.03 ซม. (ตรงกับ 0.24 ใน CAD)
             const arcLength_real = R * sweepAngleRad_real; 
 
             // ==========================================
@@ -1285,24 +1369,21 @@
             let realSpacing = arcLength_real / (actualCrimps - 1);
             let realDegree = sweepAngleDeg_real / (actualCrimps - 1);
 
-            // อัปเดต Input กลับไปให้ผู้ใช้เห็น
             if (calcMode === 'spacing') {
                 document.getElementById('targetDegree').value = realDegree.toFixed(2);
             } else {
                 document.getElementById('crimpSpacing').value = realSpacing.toFixed(2);
             }
 
-            // อัปเดตตัวเลขบนหน้าจอ
             document.getElementById('resSlopeAngle').innerText = slopeAngleDeg_real.toFixed(2);
-            document.getElementById('resArcAngle').innerText = roundedArcAngle.toString(); // แสดงองศาที่ปัดเศษแล้ว (69 องศา)
+            document.getElementById('resArcAngle').innerText = roundedArcAngle.toString();
             document.getElementById('resRadius').innerText = R.toFixed(2);
-            document.getElementById('arcLengthDisp').innerText = arcLength_real.toFixed(2); // แสดงระยะ 24.03 (ตรงกับ 0.240)
+            document.getElementById('arcLengthDisp').innerText = arcLength_real.toFixed(2);
             
             document.getElementById('resCrimpCount').innerText = actualCrimps;
             document.getElementById('displayRealSpacing').innerText = realSpacing.toFixed(2);
             document.getElementById('displayRealDegree').innerText = realDegree.toFixed(2);
 
-            // สรุปความยาว
             const straightLen_real = Math.sqrt(W_straight_real**2 + H_straight_drop_real**2);
             const backTotal = L_back_hang;
             document.getElementById('bk_back').innerText = backTotal.toFixed(2);
@@ -1312,7 +1393,6 @@
             const totalLen = backTotal + straightLen_real + arcLength_real + H_front_hang;
             document.getElementById('totalSheetLength').innerText = (totalLen / 100).toFixed(2);
 
-            // ส่ง DRAW MATH ไปวาด
             drawAwning(W_total, H_back, W_straight_draw, H_straight_drop_draw, H_front_hang, L_back_hang, slopeAngleRad_draw, R, sweepAngleRad_draw, actualCrimps, purlinSize, inputCurveBase, inputCurveHeight);
         }
 
@@ -1328,7 +1408,6 @@
             if (availW <= 0 || availH <= 0) return;
             if (isNaN(R) || R <= 0) return;
 
-            // พิกัดเรขาคณิต
             const StartArcX = W_straight;
             const StartArcY = H_straight_drop;
             
@@ -1353,7 +1432,6 @@
 
             ctx.lineJoin = 'round'; ctx.lineCap = 'round';
 
-            // เส้นโครงสร้าง (จำลองแบบไม่รวมแป เพื่อให้เห็นจุดตัด)
             ctx.beginPath(); ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 4;
             const BackTipX = -L_back_hang * Math.cos(slopeAngleRad);
             const BackTipY = -L_back_hang * Math.sin(slopeAngleRad);
@@ -1390,7 +1468,6 @@
                 ctx.strokeStyle = '#334155'; 
                 ctx.lineWidth = 1.5;
 
-                // 1. แปตัวหลัง (ณ ตำแหน่งเสาหลังสูง)
                 ctx.save();
                 ctx.translate(trX(0), trY(0));
                 ctx.rotate(slopeAngleRad); 
@@ -1400,7 +1477,6 @@
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
                 ctx.restore();
 
-                // 2. แปก่อนเข้าโค้ง
                 ctx.save();
                 ctx.translate(trX(StartArcX), trY(StartArcY));
                 ctx.rotate(slopeAngleRad); 
@@ -1410,7 +1486,6 @@
                 ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-ps, ps); ctx.stroke();
                 ctx.restore();
 
-                // 3. แปตัวล่าง (แนวตั้งตรงก่อนเข้าชายหน้า)
                 ctx.save();
                 ctx.translate(trX(EndArcX), trY(EndArcY));
                 ctx.beginPath(); ctx.rect(-ps, 0, ps, ps);
@@ -1460,13 +1535,11 @@
                 ctx.fill();
             }
 
-            // คำนวณระยะแนวตั้งจากยอดหลังคาถึงใต้แป เพื่อวัดเส้นบอกระยะ
             const backPurlinBottomY = purlinSize / Math.cos(slopeAngleRad); 
             drawArrowLine(trX(0), trY(backPurlinBottomY), trX(0), trY(EndArcY), H_back + " ซม.", '#64748b', 30);
             
             drawArrowLine(trX(0), trY(EndArcY+H_front_hang), trX(EndArcX), trY(EndArcY+H_front_hang), W_total + " ซม.", '#64748b', -30);
 
-            // วาดเส้นบอกระยะหลบกรอบแปเหมือนเวอร์ชัน V1
             drawArrowLine(trX(EndArcX), trY(StartArcY + purlinSize), trX(EndArcX), trY(EndArcY), Math.max(0, inputCurveHeight).toFixed(1) + " ซม.", '#dc2626', -45);
             drawArrowLine(trX(StartArcX), trY(EndArcY), trX(EndArcX - purlinSize), trY(EndArcY), Math.max(0, inputCurveBase).toFixed(1) + " ซม.", '#dc2626', 30);
 
@@ -1525,7 +1598,7 @@
     }
 
     let calcData = { calculated: false, profileName: "", length: 0, count: 0, area: 0, screws: 0, flashing: 0, price: 0, angle: 0, isCurve: false };
-    let currentMode = 'slope'; // slope, rightTri, curve, triangle, trapezoid, irregular, parallelogram, polygon, awning
+    let currentMode = 'slope'; // slope, rightTri, curve, triangle, trapezoid, irregular, parallelogram, polygon, awning, louver
     let isCurvedMode = false;
     let curveCalcMode = 'h'; // 'h' for height, 'r' for radius
     let polygonPoints = []; // Stores objects {x: 0, y: 0}
@@ -1616,10 +1689,8 @@
             if(mainContent) mainContent.style.display = 'none';
             if(awningWrapper) awningWrapper.style.display = 'flex';
             
-            // Inject user provided code into the iframe dynamically
             let iframe = document.getElementById('awning-iframe');
             if (iframe && !iframe.srcdoc) {
-                // Strip possible invisible characters to prevent JS execution errors inside iframe
                 let rawCode = document.getElementById('awning-template').value;
                 iframe.srcdoc = rawCode.replace(/\u00A0/g, " ");
             }
@@ -1627,13 +1698,13 @@
             document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
             let opt = document.getElementById('opt-awning');
             if(opt) opt.classList.add('active');
-            return; // Stop here, rest of the app operates inside iframe
+            return; 
         } else {
-            if(mainContent) mainContent.style.display = ''; // Reverts to CSS default (grid/flex)
+            if(mainContent) mainContent.style.display = ''; 
             if(awningWrapper) awningWrapper.style.display = 'none';
         }
 
-        // Update Buttons for modes 1-8
+        // Update Buttons
         document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
         document.getElementById('opt-' + type).classList.add('active');
 
@@ -1645,6 +1716,7 @@
         document.getElementById('inputs-irregular').style.display = 'none';
         document.getElementById('inputs-parallelogram').style.display = 'none';
         document.getElementById('inputs-polygon').style.display = 'none';
+        document.getElementById('inputs-louver').style.display = 'none';
         
         document.getElementById('input-angle').style.display = 'block';
         document.getElementById('input-curve-height').style.display = 'none';
@@ -1657,8 +1729,8 @@
         document.getElementById('accessoryList').style.display = 'none';
         document.getElementById('priceRow').style.display = 'none';
         
-        // Default Overhang Visible
         document.getElementById('input-overhang-container').style.display = 'block';
+        document.getElementById('main-profile-group').style.display = 'block';
 
         if(type === 'slope') {
             document.getElementById('inputs-standard').style.display = 'block';
@@ -1689,6 +1761,11 @@
         } else if (type === 'polygon') {
             document.getElementById('inputs-polygon').style.display = 'block';
             document.getElementById('input-overhang-container').style.display = 'none';
+        } else if (type === 'louver') {
+            document.getElementById('inputs-louver').style.display = 'block';
+            document.getElementById('input-overhang-container').style.display = 'none';
+            document.getElementById('main-profile-group').style.display = 'none';
+            document.getElementById('input-angle').style.display = 'none';
         }
     }
 
@@ -1719,8 +1796,11 @@
     function updateModelInfo() {
         const select = document.getElementById("sheetProfile");
         const customBox = document.getElementById("customInputBox");
+        const purlinBox = document.getElementById("purlinSpacingBox");
         const modelInfo = document.getElementById("modelInfo");
         const val = select.value;
+
+        purlinBox.style.display = "none";
 
         if (val.startsWith("custom")) {
             customBox.style.display = "block";
@@ -1731,47 +1811,80 @@
             const parts = val.split("|");
             const width = parseFloat(parts[0]);
             const minSlope = parseInt(parts[1]);
+            
+            const isKL = parts.length > 2 && (parts[2] === "KL" || parts[2] === "CONN");
+            
             let slopeText = "";
             if(minSlope > 0) slopeText = ` | แนะนำ Slope ≥ ${minSlope}°`;
             modelInfo.innerText = `✓ หน้ากว้าง: ${width} ม.${slopeText}`;
+
+            if (isKL) {
+                purlinBox.style.display = "block";
+            }
         }
     }
 
+    function updateLouverInfo() {
+        const select = document.getElementById("louverTypeModel");
+        const val = select.value;
+        const parts = val.split("|");
+        const density = parseInt(parts[1]);
+        document.getElementById("louverModelInfo").innerText = `✓ สูง 1 เมตร จะใช้บานเกล็ด ${density} แผ่น`;
+        if (calcData.calculated) calculate();
+    }
+
     function drawPlaceholder() {
-        drawRoof(4, 5, 1, 5.07, false);
+        if (currentMode === 'louver') {
+            drawLouverBox(4, 2, 1, 6, 'none');
+        } else {
+            drawRoof(4, 5, 1, 5.07, false);
+        }
     }
 
     function calculate() {
         let overhang = parseFloat(document.getElementById('overhang').value) || 0;
         
-        // Force overhang to 0 for types that don't use it
-        if (currentMode === 'rightTri' || currentMode === 'trapezoid' || currentMode === 'irregular' || currentMode === 'parallelogram' || currentMode === 'polygon') {
+        if (currentMode === 'rightTri' || currentMode === 'trapezoid' || currentMode === 'irregular' || currentMode === 'parallelogram' || currentMode === 'polygon' || currentMode === 'louver') {
             overhang = 0;
         }
 
         let price = parseFloat(document.getElementById('pricePerMeter').value) || 0;
         let angle = parseFloat(document.getElementById('angle').value) || 0;
         
-        let profileSelect = document.getElementById('sheetProfile');
-        let profileVal = profileSelect.value;
-        let profileName = profileSelect.options[profileSelect.selectedIndex].text;
-
-        if(profileVal === "") {
-            showWarning("⚠️ กรุณาเลือกรุ่นแผ่นเมทัลชีท");
-            return;
-        }
-
         let sheetW = 0;
-        if(profileVal.startsWith("custom")) {
-            sheetW = parseFloat(document.getElementById('customVal').value) || 0;
-            if(sheetW === 0) {
-                showWarning("⚠️ กรุณาระบุความกว้างแผ่นที่ต้องการ");
+        let isKL = false;
+        let profileName = "";
+
+        if (currentMode !== 'louver') {
+            let profileSelect = document.getElementById('sheetProfile');
+            let profileVal = profileSelect.value;
+            profileName = profileSelect.options[profileSelect.selectedIndex].text;
+
+            if(profileVal === "") {
+                showWarning("⚠️ กรุณาเลือกรุ่นแผ่นเมทัลชีท");
                 return;
             }
-            profileName = "สั่งผลิตพิเศษ (กว้าง " + sheetW + " ม.)";
-        } else {
-            const parts = profileVal.split("|");
-            sheetW = parseFloat(parts[0]);
+
+            if(profileVal.startsWith("custom")) {
+                sheetW = parseFloat(document.getElementById('customVal').value) || 0;
+                if(sheetW === 0) {
+                    showWarning("⚠️ กรุณาระบุความกว้างแผ่นที่ต้องการ");
+                    return;
+                }
+                profileName = "สั่งผลิตพิเศษ (กว้าง " + sheetW + " ม.)";
+            } else {
+                const parts = profileVal.split("|");
+                sheetW = parseFloat(parts[0]);
+                if (parts.length > 2 && (parts[2] === "KL" || parts[2] === "CONN")) {
+                    isKL = true;
+                }
+            }
+
+            let purlinSpacing = parseFloat(document.getElementById('purlinSpacing').value) || 0;
+            if (isKL && purlinSpacing <= 0) {
+                showWarning("⚠️ กรุณาระบุระยะ @ แป ที่ถูกต้อง (มากกว่า 0)");
+                return;
+            }
         }
 
         let totalLen = 0;
@@ -1781,6 +1894,9 @@
         let totalLinearMeter = 0;
         let flashingLen = 0;
         let billableArea = 0;
+        
+        let sheetData = []; 
+        let baseWidth = 0;
 
         const rad = angle * (Math.PI / 180);
         const secVal = 1 / Math.cos(rad);
@@ -1790,13 +1906,129 @@
         document.getElementById('cuttingFormula').style.display = 'none';
         document.getElementById('cutListDesc').innerText = "(เรียงจากซ้ายไปขวา)";
 
-        // --- CALCULATION LOGIC ---
+        // --- LOUVER CALCULATION LOGIC ---
+        if (currentMode === 'louver') {
+            document.getElementById('labelLength').innerText = "ความยาวแผ่นรวมทั้งหมด";
+            let width = parseFloat(document.getElementById('louverWidth').value) || 0;
+            let height = parseFloat(document.getElementById('louverHeight').value) || 0;
+            let spacing = parseFloat(document.getElementById('louverStrapSpacing').value) || 1.0;
+            let flashingType = document.getElementById('louverFlashingType').value;
+            
+            let typeSelect = document.getElementById('louverTypeModel');
+            let typeVal = typeSelect.value;
+            let typeName = typeSelect.options[typeSelect.selectedIndex].text.split('(')[0].trim();
 
-        if (currentMode === 'slope') {
+            if(width === 0 || height === 0) { showWarning("⚠️ กรุณากรอกความกว้างและความสูงช่องเปิดให้ครบถ้วน"); return; }
+            if(spacing <= 0) { showWarning("⚠️ ระยะ @ ขารับบานเกล็ด ต้องมากกว่า 0"); return; }
+
+            const parts = typeVal.split("|");
+            const density = parseInt(parts[1]);
+
+            let rows = Math.ceil(height * density); 
+            totalLen = width * rows;
+            let totalStraps = Math.ceil((totalLen / spacing) * 2);
+            let totalScrews = totalStraps * 2;
+            let numPostsExact = Math.ceil(width / spacing) + 1;
+            flashingLen = 0;
+            let flashingDesc = "";
+
+            if (flashingType === 'perimeter') {
+                flashingLen = (width * 2) + (height * 2);
+                flashingDesc = `เส้นรอบรูป (กว้าง ${width.toFixed(2)}x2 + สูง ${height.toFixed(2)}x2)`;
+            } else if (flashingType === 'vertical') {
+                flashingLen = numPostsExact * height;
+                flashingDesc = `ตามระยะ @ (จำนวน ${numPostsExact} เสา x สูง ${height.toFixed(2)})`;
+            } else if (flashingType === 'both') {
+                flashingLen = (width * 2) + (numPostsExact * height);
+                flashingDesc = `เส้นรอบรูป + ตามระยะ @ (กว้าง ${width.toFixed(2)}x2 + เสา ${numPostsExact} ต้นxสูง ${height.toFixed(2)})`;
+            }
+
+            let cutLengths = [];
+            let remaining = width;
+            while(remaining > 0.001) { 
+                if (remaining > 6) { cutLengths.push(6); remaining -= 6; }
+                else { cutLengths.push(remaining); remaining = 0; }
+            }
+            sheetCount = cutLengths.length * rows;
+            totalLinearMeter = totalLen;
+            
+            // Set Louver specific UI
+            document.getElementById('roof-accessories').style.display = 'none';
+            document.getElementById('louver-accessories').style.display = 'block';
+            document.getElementById('areaCard').style.display = 'none';
+            document.getElementById('resultGrid').style.gridTemplateColumns = '1fr 1fr';
+
+            document.getElementById('print-roof-only-row').style.display = 'none';
+            document.getElementById('print-louver-only-row').style.display = 'table-row';
+            document.getElementById('print-flashing-label').style.display = 'inline';
+
+            document.getElementById('outLouverStraps').innerText = totalStraps.toLocaleString();
+            document.getElementById('louverStrapDetail').innerText = `สูตร: (ความยาวรวม ${totalLen.toFixed(2)} / ระยะ@ ${spacing.toFixed(2)}) × 2`;
+            document.getElementById('outLouverScrews').innerText = totalScrews.toLocaleString();
+
+            if (flashingType === 'none') {
+                document.getElementById('louverFlashingRow').style.display = 'none';
+                document.getElementById('louverFlashingScrewRow').style.display = 'none';
+                document.getElementById('print-flashing-type').innerText = "-";
+            } else {
+                document.getElementById('louverFlashingRow').style.display = 'list-item';
+                document.getElementById('louverFlashingScrewRow').style.display = 'list-item';
+                document.getElementById('outLouverFlashing').innerText = flashingLen.toFixed(2);
+                document.getElementById('louverFlashingDetail').innerText = `รูปแบบ: ${flashingDesc}`;
+                let flashScrews = Math.ceil(flashingLen * 3.5);
+                document.getElementById('outLouverFlashingScrews').innerText = flashScrews.toLocaleString();
+                let printFlashTxt = document.getElementById('louverFlashingType').options[document.getElementById('louverFlashingType').selectedIndex].text;
+                document.getElementById('print-flashing-type').innerText = printFlashTxt + ` (${flashingLen.toFixed(2)} ม.)`;
+            }
+
+            let tbody = document.getElementById('sheetListBody');
+            tbody.innerHTML = "";
+            let cutCounts = {};
+            cutLengths.forEach(len => {
+                let key = len.toFixed(2);
+                cutCounts[key] = (cutCounts[key] || 0) + 1;
+            });
+
+            document.getElementById('cuttingSheetList').style.display = 'block';
+            document.getElementById('cutListDesc').innerText = `จำนวน ${rows} แถว`;
+            document.getElementById('cuttingTableHead').innerHTML = `
+                <tr>
+                    <th>ความยาวแผ่น (ม.)</th>
+                    <th>จำนวนต่อ 1 แถว</th>
+                    <th>จำนวนรวมทั้งหมด (แผ่น)</th>
+                </tr>
+            `;
+
+            for (let lenStr in cutCounts) {
+                let countPerRow = cutCounts[lenStr];
+                let totalCountForThisLen = countPerRow * rows;
+                let rowHTML = `<tr>
+                    <td style="font-weight:bold;">${lenStr}</td>
+                    <td>${countPerRow}</td>
+                    <td style="color:var(--primary-color); font-weight:bold;">${totalCountForThisLen}</td>
+                </tr>`;
+                tbody.innerHTML += rowHTML;
+            }
+
+            drawLouverBox(width, height, spacing, rows, flashingType);
+
+            document.getElementById('print-type').innerText = "บานเกล็ด (Louver)";
+            document.getElementById('print-model').innerText = typeName;
+            document.getElementById('print-width').innerText = width.toFixed(2) + " (กว้าง)";
+            document.getElementById('print-run').innerText = height.toFixed(2) + " (สูง)";
+            document.getElementById('print-spacing').innerText = spacing.toFixed(2);
+            document.getElementById('print-rows').innerText = rows;
+            document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
+        }
+        
+        // --- STANDARD ROOF CALCULATION LOGIC ---
+        else if (currentMode === 'slope') {
             document.getElementById('labelLength').innerText = "ความยาวแผ่นตัด";
             let width = parseFloat(document.getElementById('roofWidth').value) || 0;
             let run = parseFloat(document.getElementById('roofRun').value) || 0;
             if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกขนาดให้ครบถ้วน"); return; }
+            
+            baseWidth = width;
 
             let totalHorizontalRun = run + overhang;
             let slopeLength = totalHorizontalRun * secVal;
@@ -1814,6 +2046,8 @@
             
             document.getElementById('print-type').innerText = "ทรงจั่ว/เพิงแหงน";
             document.getElementById('print-slope-h').innerText = angle + " องศา";
+            document.getElementById('print-width').innerText = width;
+            document.getElementById('print-run').innerText = run;
             document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
 
         } else if (currentMode === 'rightTri') {
@@ -1823,11 +2057,10 @@
             
             if(base === 0 || height === 0) { showWarning("⚠️ กรุณากรอกฐานและสูง"); return; }
 
-            // Apply Overhang: Extend Base (Disabled for this mode by request, forced to 0 in calculate start)
             let eff_base = base;
             let eff_height = height;
+            baseWidth = eff_base;
 
-            // Real Area considers slope
             let areaPlan = 0.5 * eff_base * eff_height;
             geometricArea = areaPlan * secVal; 
             
@@ -1836,13 +2069,11 @@
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = [];
 
             for(let i=1; i<=sheetCount; i++) {
                 let x_start = (i-1) * sheetW;
-                let x_end = i * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ
+                let x_end = i * sheetW; 
                 let h_max = eff_height * (1 - (x_start / eff_base));
-                // Apply secVal to the cut length
                 let cut_len = (h_max * secVal); 
 
                 currentTotalLen += cut_len;
@@ -1854,13 +2085,12 @@
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: `L${i}`, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
+                sheetData.push({ id: `L${i}`, x: x_start, w: sheetW, len: cut_len }); 
             }
 
             totalLinearMeter = currentTotalLen;
             billableArea = totalLinearMeter * sheetW;
             
-            // Flashing: Vertical(Sloped) + Base + Hypotenuse
             let vertSloped = eff_height * secVal;
             let hypSloped = Math.sqrt(Math.pow(eff_base, 2) + Math.pow(vertSloped, 2));
             flashingLen = vertSloped + eff_base + hypSloped; 
@@ -1870,6 +2100,7 @@
             document.getElementById('print-type').innerText = "สามเหลี่ยม (มุมฉาก)";
             document.getElementById('print-slope-h').innerText = `สูง ${eff_height.toFixed(2)} ม. / ${angle}°`;
             document.getElementById('print-width').innerText = eff_base.toFixed(2) + " (ฐานรวม)";
+            document.getElementById('print-run').innerText = "-";
             document.getElementById('outLength').innerText = totalLinearMeter.toFixed(2) + " ม.";
             
             let formulaHtml = `
@@ -1892,6 +2123,8 @@
 
             if(width===0 || run===0 || curveVal===0) { showWarning("⚠️ กรุณากรอกข้อมูลให้ครบ"); return; }
             
+            baseWidth = width;
+
             let h = 0, R = 0;
             if (curveCalcMode === 'h') {
                 h = curveVal;
@@ -1926,14 +2159,13 @@
             let typeText = isStraightEaves ? "ทรงโค้ง (ชายคาตรง)" : "ทรงโค้ง (Curved)";
             document.getElementById('print-type').innerText = typeText;
             document.getElementById('print-slope-h').innerText = `H=${h.toFixed(2)}m / R=${R.toFixed(2)}m`;
+            document.getElementById('print-width').innerText = width;
+            document.getElementById('print-run').innerText = run;
             document.getElementById('curveGableRow').style.display = 'block';
             document.getElementById('outGableArea').innerText = gableArea.toFixed(2);
             document.getElementById('outLength').innerText = totalLen.toFixed(2) + " ม.";
 
         } else if (currentMode === 'triangle') {
-            const rad = angle * (Math.PI / 180);
-            const secVal = 1 / Math.cos(rad);
-            
             document.getElementById('labelLength').innerText = "ความยาวตัดรวม (Total)";
             let base = parseFloat(document.getElementById('triBase').value) || 0;
             let h_plan = parseFloat(document.getElementById('triHeight').value) || 0;
@@ -1944,6 +2176,8 @@
             if (h_plan > 0) {
                 eff_b = base * (eff_h / h_plan);
             }
+            
+            baseWidth = eff_b;
 
             let areaPlan = 0.5 * eff_b * eff_h;
             let areaReal = areaPlan * secVal; 
@@ -1959,18 +2193,14 @@
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = []; 
             
             let center = eff_b / 2;
             let sheetCountHalf = Math.ceil(center / sheetW);
-            sheetCount = sheetCountHalf * 2; // ยอดรวมแผ่นซ้าย-ขวา
+            sheetCount = sheetCountHalf * 2; 
             
-            // สร้างรายการแผ่นฝั่งซ้าย (วาดจากซ้ายสุด มาตรงกลาง เพื่อให้เรียงตามแกน X)
             for(let j = sheetCountHalf; j >= 1; j--) {
                 let x_end = center - (j-1) * sheetW;
-                let x_start = center - j * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ (อาจติดลบเลยขอบหลังคา)
-                
-                // ความสูงสูงสุดของแผ่นฝั่งซ้าย จะอยู่ทางด้านขวาของแผ่นเสมอ (ยิ่งใกล้กลางยิ่งสูง)
+                let x_start = center - j * sheetW; 
                 let h_max = (eff_h / center) * x_end; 
                 let cut_len = (h_max * secVal); 
                 
@@ -1984,15 +2214,13 @@
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); 
             }
             
-            // สร้างรายการแผ่นฝั่งขวา (จากตรงกลาง ไปขวาสุด)
             for(let i = 1; i <= sheetCountHalf; i++) {
                 let x_start = center + (i-1) * sheetW;
-                let x_end = center + i * sheetW; // บังคับใช้ความกว้างเต็มแผ่นเสมอ (อาจเลยขอบหลังคา)
+                let x_end = center + i * sheetW; 
                 
-                // ความสูงสูงสุดของแผ่นฝั่งขวา จะอยู่ทางด้านซ้ายของแผ่นเสมอ
                 let h_max = (eff_h / center) * (eff_b - x_start); 
                 let cut_len = (h_max * secVal); 
                 
@@ -2006,7 +2234,7 @@
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); 
             }
             
             totalLinearMeter = currentTotalLen;
@@ -2038,8 +2266,9 @@
             let hR = parseFloat(document.getElementById('trapHeightR').value) || 0;
             
             if(width === 0 || (hL === 0 && hR === 0)) { showWarning("⚠️ กรุณากรอกขนาดให้ครบ"); return; }
+            
+            baseWidth = width;
 
-            // Trapezoid logic
             let areaPlan = width * (hL + hR) / 2;
             geometricArea = areaPlan * secVal; 
             
@@ -2048,9 +2277,7 @@
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = [];
 
-            // ตัดสินใจว่าฝั่งไหนยาวกว่า ให้เริ่มปูแผ่นจากฝั่งนั้น
             let layFromRight = hR > hL;
             let listHeader = layFromRight ? "R" : "L";
 
@@ -2059,17 +2286,16 @@
                 
                 if (layFromRight) {
                     x_end = width - (i-1) * sheetW;
-                    x_start = width - i * sheetW; // อาจติดลบเมื่อเลยขอบซ้าย
+                    x_start = width - i * sheetW; 
                 } else {
                     x_start = (i-1) * sheetW;
-                    x_end = i * sheetW; // อาจเกิน width เมื่อเลยขอบขวา
+                    x_end = i * sheetW; 
                 }
                 
                 let y_start = hL + (hR - hL) * (x_start / width);
                 let y_end = hL + (hR - hL) * (x_end / width); 
                 
                 let h_max = Math.max(y_start, y_end);
-                // Apply secVal to cut length
                 let cut_len = (h_max * secVal);
 
                 currentTotalLen += cut_len;
@@ -2082,7 +2308,7 @@
                 </tr>`;
                 tbody.innerHTML += row;
                 
-                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); // บันทึกเป็นระยะแผ่นเต็ม
+                sheetData.push({ id: label, x: x_start, w: sheetW, len: cut_len }); 
             }
 
             totalLinearMeter = currentTotalLen;
@@ -2118,8 +2344,9 @@
             let hBR = parseFloat(document.getElementById('irrHBR').value) || 0;
 
             if(width === 0) { showWarning("⚠️ กรุณากรอกความกว้าง"); return; }
+            
+            baseWidth = width;
 
-            // Irregular logic
             let areaPlan = width * ((hTL + hTR) - (hBL + hBR)) / 2;
             geometricArea = areaPlan * secVal;
 
@@ -2128,9 +2355,7 @@
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = [];
 
-            // ตรวจสอบความยาวฝั่งซ้าย vs ฝั่งขวา
             let leftHeight = hTL - hBL;
             let rightHeight = hTR - hBR;
             let layFromRight = rightHeight > leftHeight;
@@ -2147,7 +2372,6 @@
                     x_end = i * sheetW;
                 }
                 
-                // Interpolate Y Top and Y Bottom
                 let yt_start = hTL + (hTR - hTL) * (x_start / width);
                 let yt_end = hTL + (hTR - hTL) * (x_end / width);
                 
@@ -2173,9 +2397,9 @@
                 sheetData.push({ 
                     id: label, 
                     x: x_start, 
-                    w: sheetW, // บันทึกเป็นระยะแผ่นเต็ม
+                    w: sheetW, 
                     len: cut_len,
-                    yTop: y_top_max, // For drawing
+                    yTop: y_top_max, 
                     yBot: y_bot_min
                 });
             }
@@ -2183,7 +2407,6 @@
             totalLinearMeter = currentTotalLen;
             billableArea = totalLinearMeter * sheetW;
             
-            // Flashing approx
             flashingLen = (width*2 + hTL + hTR + hBL + hBR) * secVal; 
 
             drawIrregular(width, hTL, hTR, hBL, hBR, sheetData);
@@ -2212,6 +2435,8 @@
             let skew = parseFloat(document.getElementById('paraSkew').value) || 0;
 
             if(width === 0 || run === 0) { showWarning("⚠️ กรุณากรอกขนาดให้ครบถ้วน"); return; }
+            
+            baseWidth = width;
 
             let totalHorizontalRun = run + overhang;
             let slopeLength = totalHorizontalRun * secVal;
@@ -2223,10 +2448,7 @@
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = [];
 
-            // สำหรับสี่เหลี่ยมด้านขนาน แผ่นทุกแผ่นยาวเท่ากันทั้งหมด
-            // เช็ค skew ว่าฝั่งไหนเอียงไปรับก่อน ให้ถือว่าเป็นฝั่งเริ่มต้น เพื่อความสวยงาม
             let layFromRight = skew < 0; 
             let listHeader = layFromRight ? "R" : "L";
 
@@ -2278,7 +2500,6 @@
                  return;
             }
             
-            // Calculate Polygon Area (Shoelace Formula)
             let areaPlan = 0;
             for (let i = 0; i < polygonPoints.length; i++) {
                 let j = (i + 1) % polygonPoints.length;
@@ -2289,7 +2510,6 @@
             
             geometricArea = areaPlan * secVal;
             
-            // Find Bounding Box to determine Grid
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             polygonPoints.forEach(p => {
                 if (p.x < minX) minX = p.x;
@@ -2299,14 +2519,13 @@
             });
             
             let width = maxX - minX;
+            baseWidth = width;
             sheetCount = Math.ceil(width / sheetW);
             
             let tbody = document.getElementById('sheetListBody');
             tbody.innerHTML = "";
             let currentTotalLen = 0;
-            let sheetData = [];
 
-            // คำนวณหาระยะความยาวแต่ละแผ่นตามพิกัดที่ตกกระทบ
             for(let i=1; i<=sheetCount; i++) {
                 let x_start = minX + (i-1) * sheetW;
                 let x_end = minX + i * sheetW;
@@ -2336,7 +2555,6 @@
             totalLinearMeter = currentTotalLen; 
             billableArea = totalLinearMeter * sheetW;
             
-            // Flashing: Perimeter
             let perimeter = 0;
             for (let i = 0; i < polygonPoints.length; i++) {
                 let j = (i + 1) % polygonPoints.length;
@@ -2367,25 +2585,100 @@
             document.getElementById('cutListDesc').innerText = "(ประเมินการปูแผ่นจากซ้ายสุดไปขวาสุด)";
         }
 
-        // --- FINAL CALCULATIONS ---
-        
+        // --- FINAL CALCULATIONS (Screws & Connectors) for Standard Roof ---
         let totalPrice = totalLinearMeter * price;
-        let mainScrews = Math.ceil(billableArea * 4); 
-        let flashScrews = Math.ceil(flashingLen * 3.5);
+        
+        if (currentMode !== 'louver') {
+            document.getElementById('roof-accessories').style.display = 'block';
+            document.getElementById('louver-accessories').style.display = 'none';
+            document.getElementById('areaCard').style.display = 'block';
+            document.getElementById('resultGrid').style.gridTemplateColumns = '1fr 1fr 1fr';
+            
+            document.getElementById('print-roof-only-row').style.display = 'table-row';
+            document.getElementById('print-louver-only-row').style.display = 'none';
+            document.getElementById('print-flashing-label').style.display = 'none';
+            document.getElementById('print-flashing-type').innerText = "";
+            document.getElementById('print-model').innerText = profileName;
 
-        // Show Results Area
+            document.getElementById('cuttingTableHead').innerHTML = `
+                <tr>
+                    <th>แผ่นที่</th>
+                    <th>ระยะ (ม.)</th>
+                    <th>ความยาวตัด (ม.)</th>
+                </tr>
+            `;
+
+            let mainScrews = 0;
+            let flashScrews = 0;
+            let connectorCount = 0;
+            let connectorsPerSheet = 0;
+            
+            let maxLen = 0;
+            if (sheetData && sheetData.length > 0) {
+                maxLen = Math.max(...sheetData.map(s => s.len));
+            } else {
+                maxLen = totalLen;
+            }
+
+            if (isKL) {
+                if (sheetData && sheetData.length > 0) {
+                    connectorCount = sheetData.reduce((sum, sheet) => sum + (Math.ceil(sheet.len / purlinSpacing) + 1), 0);
+                    connectorsPerSheet = Math.ceil(maxLen / purlinSpacing) + 1; 
+                } else {
+                    connectorsPerSheet = Math.ceil(maxLen / purlinSpacing) + 1;
+                    connectorCount = connectorsPerSheet * sheetCount;
+                }
+
+                let perimeter = (baseWidth * 2) + (maxLen * 2);
+                if (currentMode === 'polygon' || currentMode === 'irregular' || currentMode === 'triangle' || currentMode === 'rightTri' || currentMode === 'trapezoid') {
+                     perimeter = (baseWidth * 2) + (maxLen * 2); 
+                }
+
+                mainScrews = Math.ceil(perimeter * 3); 
+                let baseFlashScrews = Math.ceil(flashingLen * 3.5);
+                flashScrews = (connectorCount * 4) + baseFlashScrews;
+                
+                document.getElementById('lblScrewFlash').innerText = "สกรูยึดครอบ/คอนเนคเตอร์ (สั้น):";
+                document.getElementById('screwMainDetail').innerText = `(คิดจากเส้นรอบรูป ${perimeter.toFixed(2)} ม. x 3 ตัว/ม.)`;
+                document.getElementById('screwFlashDetail').innerText = `(ยึดคอนเนคเตอร์ ${connectorCount*4} ตัว + ยึดครอบ ${baseFlashScrews} ตัว)`;
+            } else {
+                mainScrews = Math.ceil(billableArea * 4); 
+                flashScrews = Math.ceil(flashingLen * 3.5);
+                
+                document.getElementById('lblScrewFlash').innerText = "สกรูยึดครอบ (สั้น):";
+                document.getElementById('screwMainDetail').innerText = `(รวมความยาว ${totalLinearMeter.toFixed(2)} ม.)`;
+                document.getElementById('screwFlashDetail').innerText = ``; 
+            }
+
+            document.getElementById('outAreaBillable').innerText = billableArea.toFixed(2);
+            document.getElementById('outAreaReal').innerText = geometricArea.toFixed(2);
+            document.getElementById('outScrewMain').innerText = mainScrews;
+            document.getElementById('outScrewFlash').innerText = flashScrews;
+            document.getElementById('outFlash').innerText = flashingLen.toFixed(2);
+            
+            if (isKL) {
+                document.getElementById('connectorRow').style.display = 'list-item';
+                document.getElementById('outConnector').innerText = connectorCount;
+                if (sheetData && sheetData.length > 0) {
+                    document.getElementById('connectorDetail').innerText = `(รวมจากทุกแผ่นตัด)`;
+                } else {
+                    document.getElementById('connectorDetail').innerText = `(ตกแผ่นละ ${connectorsPerSheet} ตัว)`;
+                }
+            } else {
+                document.getElementById('connectorRow').style.display = 'none';
+            }
+            
+            if(currentMode !== 'trapezoid' && currentMode !== 'triangle' && currentMode !== 'rightTri' && currentMode !== 'irregular' && currentMode !== 'polygon' && currentMode !== 'curve') {
+                document.getElementById('print-width').innerText = document.getElementById('roofWidth').value;
+                document.getElementById('print-run').innerText = document.getElementById('roofRun').value;
+            }
+            document.getElementById('print-overhang').innerText = overhang;
+        }
+
+        // Shared UI Updates
         document.getElementById('resultGrid').style.display = 'grid';
         document.getElementById('accessoryList').style.display = 'block';
-
-        // OUTPUTS
         document.getElementById('outCount').innerText = sheetCount + " แผ่น";
-        document.getElementById('outAreaBillable').innerText = billableArea.toFixed(2);
-        document.getElementById('outAreaReal').innerText = geometricArea.toFixed(2);
-        
-        document.getElementById('outScrewMain').innerText = mainScrews;
-        document.getElementById('screwMainDetail').innerText = `(รวมความยาว ${totalLinearMeter.toFixed(2)} ม.)`;
-        document.getElementById('outScrewFlash').innerText = flashScrews;
-        document.getElementById('outFlash').innerText = flashingLen.toFixed(2);
         
         if(price > 0) {
             document.getElementById('priceRow').style.display = 'flex';
@@ -2394,15 +2687,7 @@
             document.getElementById('priceRow').style.display = 'none';
         }
 
-        // Print Summary Updates
-        document.getElementById('print-model').innerText = profileName;
-        if(currentMode !== 'trapezoid' && currentMode !== 'triangle' && currentMode !== 'rightTri' && currentMode !== 'irregular' && currentMode !== 'polygon') {
-            document.getElementById('print-width').innerText = document.getElementById('roofWidth').value;
-            document.getElementById('print-run').innerText = document.getElementById('roofRun').value;
-        }
-        document.getElementById('print-overhang').innerText = overhang;
         document.getElementById('print-uprice').innerText = price > 0 ? price : "-";
-        
         const now = new Date();
         document.getElementById('print-date').innerText = now.toLocaleDateString('th-TH');
         document.getElementById('print-time').innerText = now.toLocaleTimeString('th-TH');
@@ -2422,6 +2707,47 @@
         ctx.restore();
     }
     
+    function drawDim(ctx, x1, y1, x2, y2, text, offset, color = '#334155', isSlope = false) {
+        ctx.save();
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1; ctx.font = 'bold 13px Sarabun';
+        let dx = x2 - x1; let dy = y2 - y1;
+        let lineAngle = Math.atan2(dy, dx);
+        let perpAngle = lineAngle + Math.PI / 2;
+        let ox1 = x1 + Math.cos(perpAngle) * offset; let oy1 = y1 + Math.sin(perpAngle) * offset;
+        let ox2 = x2 + Math.cos(perpAngle) * offset; let oy2 = y2 + Math.sin(perpAngle) * offset;
+
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2); ctx.stroke();
+        ctx.globalAlpha = 1.0;
+        ctx.beginPath(); ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2); ctx.stroke();
+        drawArrow(ctx, ox1, oy1, lineAngle + Math.PI); drawArrow(ctx, ox2, oy2, lineAngle);
+
+        let midX = (ox1 + ox2) / 2; let midY = (oy1 + oy2) / 2;
+        let metrics = ctx.measureText(text); let p = 6;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        if(isSlope) {
+             ctx.translate(midX, midY); ctx.rotate(lineAngle);
+             ctx.roundRect(-metrics.width/2 - p, -10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
+             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
+             ctx.fillStyle = color; ctx.fillText(text, -metrics.width/2, 4);
+        } else {
+             ctx.roundRect(midX - metrics.width/2 - p, midY - 10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
+             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
+             ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, midX, midY);
+        }
+        ctx.restore();
+    }
+
+    function drawArrow(ctx, x, y, angle) {
+        let headlen = 6; ctx.save(); ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill(); ctx.restore();
+    }
+    
     function drawPolygon(points, sheetData = []) {
         const ctx = document.getElementById('roofCanvas').getContext('2d');
         const w = ctx.canvas.width;
@@ -2431,7 +2757,6 @@
         
         if (points.length === 0) return;
         
-        // Determine Bounds for Scaling
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         points.forEach(p => {
             if (p.x < minX) minX = p.x;
@@ -2448,7 +2773,6 @@
         let padding = 50;
         let scale = Math.min((w - padding*2) / width, (h - padding*2) / height);
         
-        // Center the shape
         let drawW = width * scale;
         let drawH = height * scale;
         let startX = (w - drawW) / 2;
@@ -2466,10 +2790,7 @@
         ctx.fillStyle = '#e3f2fd'; ctx.fill();
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
-        // Draw Sheets inside polygon
         if (sheetData && sheetData.length > 0) {
-            
-            // 1. วาดเส้น Grid แบ่งแผ่น (ต้องใช้ Clip ป้องกันเส้นทะลุ)
             ctx.save();
             ctx.beginPath();
             points.forEach((p, i) => {
@@ -2486,7 +2807,7 @@
                 if (startRelX > 0 && startRelX < width) {
                     let edgeX = startX + startRelX * scale;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX, 0);
@@ -2497,7 +2818,6 @@
             });
             ctx.restore();
 
-            // 2. วาดตัวเลขและบอกระยะให้อยู่ "กึ่งกลาง"
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x - minX;
@@ -2519,7 +2839,6 @@
                     ctx.font = 'bold 11px Sarabun';
                     ctx.textAlign = 'center';
                     
-                    // เพิ่มขอบสีขาวให้ตัวหนังสืออ่านง่ายขึ้น
                     ctx.strokeStyle = 'rgba(255,255,255,0.8)';
                     ctx.lineWidth = 3;
                     ctx.strokeText(sheet.id, centerX, textY);
@@ -2529,7 +2848,6 @@
             ctx.restore();
         }
 
-        // Draw Points and Indexes
         ctx.fillStyle = '#333';
         ctx.font = '12px Sarabun';
         points.forEach((p, i) => {
@@ -2558,14 +2876,13 @@
         let dW = width * scale;
         
         let x = (w - dW)/2;
-        let groundY = h - 30; // Ground line
+        let groundY = h - 30;
         
         let yBL = groundY - (hBL * scale);
         let yBR = groundY - (hBR * scale);
         let yTL = groundY - (hTL * scale);
         let yTR = groundY - (hTR * scale);
         
-        // Draw Shape
         ctx.beginPath();
         ctx.moveTo(x, yBL);
         ctx.lineTo(x, yTL);
@@ -2581,8 +2898,6 @@
         drawDim(ctx, x+dW+20, yBR, x+dW+20, yTR, `R ${(hTR - hBR).toFixed(2)}`, 0, '#333');
 
         if (sheetData.length > 0) {
-            
-            // 1. Grid Lines
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(x, yBL);
@@ -2597,7 +2912,7 @@
                 if (startRelX > 0 && startRelX < width) {
                     let edgeX = x + startRelX * scale;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX, 0);
@@ -2608,7 +2923,6 @@
             });
             ctx.restore();
 
-            // 2. Center Dimensions
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x;
@@ -2675,8 +2989,6 @@
         ctx.lineWidth = 3; ctx.strokeStyle = '#E30613'; ctx.stroke();
         
         if (sheetData.length > 0) {
-            
-            // 1. Grid Lines
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(startX + dSkew, topY);
@@ -2692,7 +3004,7 @@
                     let edgeX_bot = startX + startRelX * scale;
                     let edgeX_top = edgeX_bot + dSkew;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX_bot, botY);
@@ -2703,7 +3015,6 @@
             });
             ctx.restore();
 
-            // 2. Labels
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x;
@@ -2729,7 +3040,6 @@
             ctx.restore();
         }
         
-        // Dimensions
         drawDim(ctx, startX, botY+20, startX+dW, botY+20, `กว้าง ${width.toFixed(2)} ม.`, 0, '#333');
         drawDim(ctx, startX-20, topY, startX-20, botY, `ยาว ${run.toFixed(2)} ม.`, 0, '#333');
         if(Math.abs(skew) > 0) {
@@ -2847,8 +3157,6 @@
         drawDim(ctx, cornerX - 20, cornerY, cornerX - 20, topY, `สูง ${height.toFixed(2)} ม.`, 0, '#333');
 
         if (sheetData && sheetData.length > 0) {
-            
-            // 1. วาดเส้น Grid (ใช้ Clip เพื่อให้เส้นไม่เกินรูป)
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(cornerX, cornerY); 
@@ -2862,7 +3170,7 @@
                 if (startRelX > 0 && startRelX < base) {
                     let edgeX = startX + startRelX * scale;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX, cornerY);
@@ -2873,7 +3181,6 @@
             });
             ctx.restore();
 
-            // 2. วาดตัวเลขและบอกระยะตรง "กึ่งกลาง"
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x;
@@ -2925,7 +3232,7 @@
         let drawH = h - (padding * 2);
         let scaleX = drawW / totalWidth;
         let scaleY = drawH / (totalHeight > 0 ? totalHeight : 1);
-        let scale = Math.min(scaleX, drawH / (height * 2)); 
+        let scale = Math.min(scaleX, drawH / (height * 2.5)); 
         
         let startX = (w - (span * scale)) / 2;
         let groundY = h - padding - 20;
@@ -2935,7 +3242,6 @@
         let rightWallX = startX + (span * scale);
         let wallTopY = groundY; 
 
-        // Walls
         ctx.fillStyle = '#e2e8f0'; ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
         ctx.fillRect(leftWallX - 10, wallTopY, 10, 20); ctx.strokeRect(leftWallX - 10, wallTopY, 10, 20);
         ctx.fillRect(rightWallX, wallTopY, 10, 20); ctx.strokeRect(rightWallX, wallTopY, 10, 20);
@@ -2944,7 +3250,6 @@
         ctx.moveTo(leftWallX - 30, groundY + 20); ctx.lineTo(rightWallX + 30, groundY + 20);
         ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.stroke();
 
-        // Calculate Center and Angles
         let centerX = (leftWallX + rightWallX) / 2;
         let centerY = peakY + (radius * scale); 
         
@@ -3000,7 +3305,7 @@
         let dh = height * scale;
         
         let x = (w - db)/2;
-        let y = (h - dh)/2 + dh; // Bottom
+        let y = (h - dh)/2 + dh; 
         
         ctx.beginPath();
         ctx.moveTo(x, y); 
@@ -3035,8 +3340,6 @@
         drawDim(ctx, x+db+20, y, x+db+20, y-dh, `สูงรวม ${height.toFixed(2)} ม.`, 0, '#333');
 
         if (sheetData.length > 0) {
-            
-            // 1. Grid Lines
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(x, y); 
@@ -3050,7 +3353,7 @@
                 if (startRelX > 0 && startRelX < base) {
                     let edgeX = x + startRelX * scale;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX, y);
@@ -3061,7 +3364,6 @@
             });
             ctx.restore();
 
-            // 2. Center Dimensions
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x;
@@ -3116,12 +3418,11 @@
         let bottomY = (h + maxHeight*scale)/2 + 20; 
         if(bottomY > h-30) bottomY = h-30;
 
-        // Draw Trapezoid
         ctx.beginPath();
-        ctx.moveTo(x, bottomY); // Bottom Left
-        ctx.lineTo(x + dW, bottomY); // Bottom Right
-        ctx.lineTo(x + dW, bottomY - dHR); // Top Right
-        ctx.lineTo(x, bottomY - dHL); // Top Left
+        ctx.moveTo(x, bottomY);
+        ctx.lineTo(x + dW, bottomY);
+        ctx.lineTo(x + dW, bottomY - dHR);
+        ctx.lineTo(x, bottomY - dHL);
         ctx.closePath();
         
         ctx.fillStyle = '#e3f2fd'; ctx.fill();
@@ -3132,8 +3433,6 @@
         drawDim(ctx, x+dW+20, bottomY, x+dW+20, bottomY-dHR, `R ${hR.toFixed(2)}`, 0, '#333');
 
         if (sheetData.length > 0) {
-            
-            // 1. Grid Lines
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(x, bottomY);
@@ -3148,7 +3447,7 @@
                 if (startRelX > 0 && startRelX < width) {
                     let edgeX = x + startRelX * scale;
                     ctx.beginPath();
-                    ctx.strokeStyle = '#3b82f6'; // เส้นประสีน้ำเงินเน้นรอยต่อแผ่น
+                    ctx.strokeStyle = '#3b82f6';
                     ctx.lineWidth = 1.5;
                     ctx.setLineDash([5, 3]);
                     ctx.moveTo(edgeX, bottomY);
@@ -3159,7 +3458,6 @@
             });
             ctx.restore();
 
-            // 2. Center Dimensions
             ctx.save();
             sheetData.forEach((sheet, index) => {
                 let startRelX = sheet.x;
@@ -3192,7 +3490,7 @@
     }
 
     function drawVerticalSheetDim(ctx, x, yBottom, yTop, text, color = '#16a34a') {
-        if (Math.abs(yBottom - yTop) < 15) return; // Skip if line is too short to draw arrows clearly
+        if (Math.abs(yBottom - yTop) < 15) return;
         ctx.save();
         
         ctx.strokeStyle = color;
@@ -3203,18 +3501,17 @@
         ctx.stroke();
 
         ctx.fillStyle = color;
-        drawArrow(ctx, x, yBottom, Math.PI / 2); // Down
-        drawArrow(ctx, x, yTop, -Math.PI / 2); // Up
+        drawArrow(ctx, x, yBottom, Math.PI / 2);
+        drawArrow(ctx, x, yTop, -Math.PI / 2);
 
         ctx.font = '11px Sarabun';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         let midY = (yBottom + yTop) / 2;
-        ctx.translate(x - 8, midY); // Move slightly to the left of the line
-        ctx.rotate(-Math.PI / 2); // Read bottom to top
+        ctx.translate(x - 8, midY);
+        ctx.rotate(-Math.PI / 2);
         
-        // Glow effect for readability against background grid
         ctx.strokeStyle = 'rgba(255,255,255,0.9)';
         ctx.lineWidth = 3;
         ctx.lineJoin = 'round';
@@ -3225,54 +3522,11 @@
         
         ctx.restore();
     }
-
-    function drawDim(ctx, x1, y1, x2, y2, text, offset, color = '#334155', isSlope = false) {
-        ctx.save();
-        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1; ctx.font = 'bold 13px Sarabun';
-        let dx = x2 - x1; let dy = y2 - y1;
-        let lineAngle = Math.atan2(dy, dx);
-        let perpAngle = lineAngle + Math.PI / 2;
-        let ox1 = x1 + Math.cos(perpAngle) * offset; let oy1 = y1 + Math.sin(perpAngle) * offset;
-        let ox2 = x2 + Math.cos(perpAngle) * offset; let oy2 = y2 + Math.sin(perpAngle) * offset;
-
-        ctx.globalAlpha = 0.5;
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2); ctx.stroke();
-        ctx.globalAlpha = 1.0;
-        ctx.beginPath(); ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2); ctx.stroke();
-        drawArrow(ctx, ox1, oy1, lineAngle + Math.PI); drawArrow(ctx, ox2, oy2, lineAngle);
-
-        let midX = (ox1 + ox2) / 2; let midY = (oy1 + oy2) / 2;
-        let metrics = ctx.measureText(text); let p = 6;
-        ctx.fillStyle = 'white';
-        ctx.beginPath();
-        if(isSlope) {
-             ctx.translate(midX, midY); ctx.rotate(lineAngle);
-             ctx.roundRect(-metrics.width/2 - p, -10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
-             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
-             ctx.fillStyle = color; ctx.fillText(text, -metrics.width/2, 4);
-        } else {
-             ctx.roundRect(midX - metrics.width/2 - p, midY - 10 - p, metrics.width + p*2, 20 + p, 4); ctx.fill();
-             ctx.shadowColor = "rgba(0,0,0,0.1)"; ctx.shadowBlur = 4;
-             ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, midX, midY);
-        }
-        ctx.restore();
-    }
-
-    function drawArrow(ctx, x, y, angle) {
-        let headlen = 6; ctx.save(); ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x - headlen * Math.cos(angle - Math.PI / 6), y - headlen * Math.sin(angle - Math.PI / 6));
-        ctx.lineTo(x - headlen * Math.cos(angle + Math.PI / 6), y - headlen * Math.sin(angle + Math.PI / 6));
-        ctx.closePath(); ctx.fillStyle = ctx.strokeStyle; ctx.fill(); ctx.restore();
-    }
     
-    // Helper function สำหรับค้นหาความสูงสูงสุดของรูปหลายเหลี่ยมในแต่ละช่วงหน้ากว้างแผ่น
     function getPolygonYBoundsInInterval(points, x_start, x_end) {
         let minY = Infinity;
         let maxY = -Infinity;
 
-        // เช็คว่ามีจุดพิกัดใดตกอยู่ในช่วง X นี้หรือไม่
         for (let p of points) {
             if (p.x >= x_start && p.x <= x_end) {
                 if (p.y < minY) minY = p.y;
@@ -3280,20 +3534,17 @@
             }
         }
 
-        // เช็คจุดตัดระหว่างเส้นขอบของรูปหลายเหลี่ยม กับเส้นแบ่งซ้าย-ขวาของแผ่น
         for (let i = 0; i < points.length; i++) {
             let p1 = points[i];
             let p2 = points[(i + 1) % points.length];
             
-            if (p1.x === p2.x) continue; // ข้ามเส้นแนวตั้ง
+            if (p1.x === p2.x) continue;
 
-            // ตัดเส้นซ้าย (x_start)
             if ((p1.x <= x_start && p2.x >= x_start) || (p2.x <= x_start && p1.x >= x_start)) {
                 let y = p1.y + (p2.y - p1.y) * (x_start - p1.x) / (p2.x - p1.x);
                 if (y < minY) minY = y;
                 if (y > maxY) maxY = y;
             }
-            // ตัดเส้นขวา (x_end)
             if ((p1.x <= x_end && p2.x >= x_end) || (p2.x <= x_end && p1.x >= x_end)) {
                 let y = p1.y + (p2.y - p1.y) * (x_end - p1.x) / (p2.x - p1.x);
                 if (y < minY) minY = y;
@@ -3304,6 +3555,115 @@
         if (minY === Infinity || maxY === -Infinity) return { yMin: 0, yMax: 0, length: 0 };
         return { yMin: minY, yMax: maxY, length: Math.abs(maxY - minY) }; 
     }
+
+    // --- วาดบานเกล็ด (Louver) ---
+    function drawLouverBox(width, height, spacing, rows, flashingType = 'none') {
+        const canvas = document.getElementById('roofCanvas');
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const padding = 60;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        drawGrid(ctx, w, h);
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+
+        let scaleX = (w - padding * 2) / width;
+        let scaleY = (h - padding * 2) / height;
+        let scale = Math.min(scaleX, scaleY);
+
+        let drawW = width * scale;
+        let drawH = height * scale;
+        
+        let startX = (w - drawW) / 2;
+        let startY = (h - drawH) / 2;
+
+        // กรอบช่องเปิด
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(startX, startY, drawW, drawH);
+        
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(startX, startY, drawW, drawH);
+
+        // เสาแนวตั้ง (ขารับ)
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        
+        let posts = Math.ceil(width / spacing);
+        for (let i = 1; i <= posts; i++) {
+            let px = startX + (i * spacing * scale);
+            if (px < startX + drawW - 1) {
+                ctx.beginPath();
+                ctx.moveTo(px, startY);
+                ctx.lineTo(px, startY + drawH);
+                ctx.stroke();
+            }
+        }
+        ctx.setLineDash([]);
+
+        // แผ่นบานเกล็ดแนวนอน
+        ctx.strokeStyle = '#1e40af'; 
+        ctx.lineWidth = 2;
+        
+        let maxVisualRows = 40; 
+        let drawRows = Math.min(rows, maxVisualRows);
+        let rowSpacingY = drawH / rows;
+
+        for (let r = 0; r < drawRows; r++) {
+            let y = startY + (r * rowSpacingY) + (rowSpacingY / 2);
+            ctx.beginPath();
+            ctx.moveTo(startX, y);
+            ctx.lineTo(startX + drawW, y);
+            ctx.stroke();
+        }
+
+        if (rows > maxVisualRows) {
+            ctx.fillStyle = '#1e40af';
+            ctx.font = 'bold 14px Sarabun';
+            ctx.textAlign = 'center';
+            ctx.fillText(`... และอีก ${rows - maxVisualRows} แถว ...`, w/2, startY + drawH - 10);
+        }
+
+        // แผ่นครอบ (Flashing)
+        if (flashingType !== 'none') {
+            ctx.strokeStyle = 'rgba(249, 115, 22, 0.8)'; // สีส้ม
+            
+            if (flashingType === 'perimeter' || flashingType === 'both') {
+                ctx.lineWidth = 6;
+                ctx.strokeRect(startX, startY, drawW, drawH);
+            }
+            
+            if (flashingType === 'vertical' || flashingType === 'both') {
+                ctx.lineWidth = 6;
+                for (let i = 0; i <= posts; i++) {
+                    let px = startX + (i * spacing * scale);
+                    if (px > startX + drawW) px = startX + drawW;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(px, startY);
+                    ctx.lineTo(px, startY + drawH);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        drawDim(ctx, startX, startY + drawH, startX + drawW, startY + drawH, `กว้าง ${width.toFixed(2)} ม.`, 30);
+        drawDim(ctx, startX, startY, startX, startY + drawH, `สูง ${height.toFixed(2)} ม.`, 30);
+        
+        if (width >= spacing && spacing > 0) {
+            let firstPostX = startX + (spacing * scale);
+            drawDim(ctx, startX, startY, firstPostX, startY, `@${spacing.toFixed(2)}`, -20, '#d84315');
+        }
+
+        ctx.fillStyle = '#E30613'; 
+        ctx.font = 'bold 14px Sarabun';
+        ctx.textAlign = 'left';
+        ctx.fillText(`ภาพตัดขวางจำลอง (จำนวน ${rows} แถว)`, startX, startY - 35);
+    }
+    
 </script>
 
 </body>

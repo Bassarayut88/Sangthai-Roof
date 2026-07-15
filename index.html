@@ -678,8 +678,14 @@
                         <option value="304|5" selected>LOUVER TYPE-304 (ใช้ 5 แผ่น/เมตร)</option>
                         <option value="457|3">LOUVER TYPE-457 (ใช้ 3 แผ่น/เมตร)</option>
                         <option value="610|2">LOUVER TYPE-610 (ใช้ 2 แผ่น/เมตร)</option>
+                        <option value="custom|0">กำหนดจำนวนแผ่นเอง...</option>
                     </select>
                     <div id="louverModelInfo" class="model-info">✓ สูง 1 เมตร จะใช้บานเกล็ด 5 แผ่น</div>
+                    <!-- เพิ่ม Input สำหรับกำหนดจำนวนแผ่นเอง (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+                    <div id="customLouverBox" class="custom-width-box" style="display: none; margin-top: 10px;">
+                        <label>ระบุจำนวนบานเกล็ดที่ใช้ต่อความสูง 1 เมตร (แผ่น):</label>
+                        <input type="number" id="customLouverDensity" placeholder="เช่น 4" step="0.1" value="4" onchange="if(calcData.calculated) calculate()">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>2. ความกว้างช่องเปิด (ม.) แนวนอน</label>
@@ -1826,10 +1832,21 @@
 
     function updateLouverInfo() {
         const select = document.getElementById("louverTypeModel");
+        const customBox = document.getElementById("customLouverBox");
+        const infoBox = document.getElementById("louverModelInfo");
         const val = select.value;
-        const parts = val.split("|");
-        const density = parseInt(parts[1]);
-        document.getElementById("louverModelInfo").innerText = `✓ สูง 1 เมตร จะใช้บานเกล็ด ${density} แผ่น`;
+
+        if (val.startsWith("custom")) {
+            customBox.style.display = "block";
+            infoBox.innerText = "ระบุจำนวนแผ่นที่ใช้ต่อความสูง 1 เมตร ในช่องด้านล่าง";
+            document.getElementById("customLouverDensity").focus();
+        } else {
+            customBox.style.display = "none";
+            const parts = val.split("|");
+            const density = parseInt(parts[1]);
+            infoBox.innerText = `✓ สูง 1 เมตร จะใช้บานเกล็ด ${density} แผ่น`;
+        }
+        
         if (calcData.calculated) calculate();
     }
 
@@ -1923,11 +1940,43 @@
             if(width === 0 || height === 0) { showWarning("⚠️ กรุณากรอกความกว้างและความสูงช่องเปิดให้ครบถ้วน"); return; }
             if(spacing <= 0) { showWarning("⚠️ ระยะ @ ขารับบานเกล็ด ต้องมากกว่า 0"); return; }
 
-            const parts = typeVal.split("|");
-            const density = parseInt(parts[1]);
+            // เช็คว่าเป็นการกำหนดแผ่นเองหรือใช้ค่ามาตรฐาน
+            let density = 0;
+            if (typeVal.startsWith("custom")) {
+                density = parseFloat(document.getElementById('customLouverDensity').value) || 0;
+                if (density <= 0) {
+                    showWarning("⚠️ กรุณาระบุจำนวนแผ่นต่อเมตรให้ถูกต้อง (มากกว่า 0)");
+                    return;
+                }
+                typeName = `บานเกล็ดสั่งผลิตพิเศษ (${density} แผ่น/เมตร)`;
+            } else {
+                const parts = typeVal.split("|");
+                density = parseFloat(parts[1]);
+            }
 
             let rows = Math.ceil(height * density); 
-            totalLen = width * rows;
+
+            // ----- เพิ่มตรรกะทาบต่อ 20 ซม. หากเกิน 6 เมตร -----
+            let cutLengths = [];
+            let remaining = width;
+            let overlap = 0.20; // ระยะทาบต่อ 20 ซม. (0.20 เมตร)
+            
+            while(remaining > 0.001) { 
+                if (remaining > 6) { 
+                    cutLengths.push(6); 
+                    remaining -= (6 - overlap); // หักออก 6 เมตร แต่บวกคืน 0.2 เมตร เพื่อใช้ทาบ
+                }
+                else { 
+                    cutLengths.push(remaining); 
+                    remaining = 0; 
+                }
+            }
+            
+            // คำนวณความยาวรวมที่รวมระยะทาบต่อแล้ว
+            let materialLenPerRow = cutLengths.reduce((a, b) => a + b, 0);
+            totalLen = materialLenPerRow * rows;
+            // ---------------------------------------------
+
             let totalStraps = Math.ceil((totalLen / spacing) * 2);
             let totalScrews = totalStraps * 2;
             let numPostsExact = Math.ceil(width / spacing) + 1;
@@ -1945,12 +1994,6 @@
                 flashingDesc = `เส้นรอบรูป + ตามระยะ @ (กว้าง ${width.toFixed(2)}x2 + เสา ${numPostsExact} ต้นxสูง ${height.toFixed(2)})`;
             }
 
-            let cutLengths = [];
-            let remaining = width;
-            while(remaining > 0.001) { 
-                if (remaining > 6) { cutLengths.push(6); remaining -= 6; }
-                else { cutLengths.push(remaining); remaining = 0; }
-            }
             sheetCount = cutLengths.length * rows;
             totalLinearMeter = totalLen;
             

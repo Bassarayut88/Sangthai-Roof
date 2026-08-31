@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เครื่องคำนวณเมทัลชีท (แสงไทยเมทัลชีท)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- PDF.js สำหรับนำเข้าและเรนเดอร์ไฟล์ PDF แบบแปลน -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+    <!-- สไตล์หลัก (แยกไฟล์ไว้ที่ assets/css/main.css) -->
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body onload="initApp()">
+
+<div class="container">
+    <div class="header">
+        <div class="header-content">
+            <h2>🛠️ เครื่องคำนวณเมทัลชีท</h2>
+            <div class="subtitle">ระบบประเมินราคาและจำนวนแผ่น - Sangthai Metal Sheet <span class="credit-text">by Sarayut Boonkong</span></div>
+        </div>
+        <div class="print-btn-group">
+            <button class="btn-print-top" onclick="printApp()" title="พิมพ์ใบรายการสรุป พร้อมแบบแปลนแยกหน้า A4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                พิมพ์ใบรายการ
+            </button>
+            <button class="btn-print-plan" onclick="printDrawingOnly()" title="พิมพ์เฉพาะแบบแปลนแผ่นมุงนี้ เต็มหน้า A4 (ไม่รวมข้อมูลอื่น)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                พิมพ์เฉพาะแบบแปลน A4
+            </button>
+        </div>
+    </div>
+    
+    <div class="main-content" id="main-content-wrapper">
+        <!-- 1. INPUTS (LEFT) -->
+        <div class="panel input-panel">
+            <div class="section-title">📝 ข้อมูลการสั่งตัด</div>
+            
+            <div class="form-group">
+                <label>ประเภทหลังคา (Roof Type)</label>
+                <div class="type-selector">
+                    <label class="type-option active" id="opt-slope" onclick="toggleRoofType('slope')">
+                        <input type="radio" name="roofType" value="slope" checked>
+                        1. จั่ว/เพิงแหงน
+                    </label>
+                    <label class="type-option" id="opt-rightTri" onclick="toggleRoofType('rightTri')">
+                        <input type="radio" name="roofType" value="rightTri">
+                        2. สามเหลี่ยม (มุมฉาก)
+                    </label>
+                    <label class="type-option" id="opt-curve" onclick="toggleRoofType('curve')">
+                        <input type="radio" name="roofType" value="curve">
+                        3. ทรงโค้ง
+                    </label>
+                    <label class="type-option" id="opt-triangle" onclick="toggleRoofType('triangle')">
+                        <input type="radio" name="roofType" value="triangle">
+                        4. ทรงสามเหลี่ยม (หน้าจั่ว)
+                    </label>
+                    <label class="type-option" id="opt-trapezoid" onclick="toggleRoofType('trapezoid')">
+                        <input type="radio" name="roofType" value="trapezoid">
+                        5. สี่เหลี่ยมคางหมู
+                    </label>
+                    <label class="type-option" id="opt-irregular" onclick="toggleRoofType('irregular')">
+                        <input type="radio" name="roofType" value="irregular">
+                        6. สี่เหลี่ยมด้านไม่เท่า
+                    </label>
+                    <label class="type-option" id="opt-parallelogram" onclick="toggleRoofType('parallelogram')">
+                        <input type="radio" name="roofType" value="parallelogram">
+                        7. สี่เหลี่ยมด้านขนาน
+                    </label>
+                    <label class="type-option" id="opt-polygon" onclick="toggleRoofType('polygon')">
+                        <input type="radio" name="roofType" value="polygon">
+                        8. หลายเหลี่ยม (พิกัด)
+                    </label>
+                    <label class="type-option" id="opt-awning" onclick="toggleRoofType('awning')" style="background-color: #fff1f2; border-color: #3b82f6; color: #1d4ed8;">
+                        <input type="radio" name="roofType" value="awning">
+                        9. ย้ำโค้ง (Awning)
+                    </label>
+                    <label class="type-option" id="opt-louver" onclick="toggleRoofType('louver')" style="background-color: #f0fdf4; border-color: #059669; color: #047857;">
+                        <input type="radio" name="roofType" value="louver">
+                        10. บานเกล็ด (Louver)
+                    </label>
+                    <label class="type-option" id="opt-crimpCurve" onclick="toggleRoofType('crimpCurve')" style="background-color: #fdf4ff; border-color: #a855f7; color: #7e22ce;">
+                        <input type="radio" name="roofType" value="crimpCurve">
+                        11. ย้ำโค้งโดรม
+                    </label>
+                </div>
+            </div>
+
+            <!-- Profile Group for Roofs -->
+            <div id="main-profile-group">
+                <div class="form-group">
+                    <label>1. เลือกรุ่นแผ่น (Profile)</label>
+                    <select id="sheetProfile" onchange="updateModelInfo()">
+                        <option value="" disabled selected>-- กรุณาเลือกรุ่น --</option>
+                        <optgroup label="ST COOLING ROOF (หลังคาติดฉนวน PU)">
+                            <option value="0.75|3">ST-25-750PU (75 ซม.)</option>
+                            <option value="0.76|3">ST-25-760PU / ST-27 (76 ซม.)</option>
+                            <option value="0.76|2">ST-32-760PU / ST-40 (76 ซม.)</option>
+                            <option value="0.75|3|CONN">ST-38-750PU (75 ซม.) - ระบบ Connector</option>
+                            <option value="0.30|3">ST-SNAPLOCK 300-PU (30 ซม.)</option>
+                        </optgroup>
+                        <optgroup label="KL/CONNECTOR PROFILE (ระบบคลิปล็อค)">
+                            <option value="0.70|5|CONN">ST-39-700KL (70 ซม.) - ระบบคลิปล็อค</option>
+                        </optgroup>
+                        <optgroup label="ROOF PROFILE (หลังคาลอนเปลือย)">
+                            <option value="0.76|3">ST-25-760 ลอนมาตรฐาน (76 ซม.)</option>
+                            <option value="0.75|3">ST-25-750 ลอนนิยม (75 ซม.)</option>
+                            <option value="0.75|5">ST-SPAIN-750 ลอนสเปน (75 ซม.)</option>
+                            <option value="0.75|3|CONN">ST-38-750 (75 ซม.) - ระบบ Connector</option>
+                            <option value="0.30|2">ST-SNAPLOCK-300 (30 ซม.)</option>
+                        </optgroup>
+                        <option value="custom|0">กำหนดความกว้างเอง...</option>
+                    </select>
+                    <div id="modelInfo" class="model-info"></div>
+                    <div id="customInputBox" class="custom-width-box">
+                        <label>ระบุความกว้างสุทธิ (เมตร):</label>
+                        <input type="number" id="customVal" placeholder="0.76" step="0.01">
+                    </div>
+                </div>
+
+                <!-- ช่องกรอกระยะแป (จะแสดงเมื่อเลือกรุ่นระบบคลิปล็อค/Connector) -->
+                <div id="purlinSpacingBox" class="form-group" style="display: none; background: #e3f2fd; padding: 12px; border-radius: 8px; border: 1px dashed #2196f3; margin-top: 10px;">
+                    <label style="color: #0d47a1;">ระยะ @ แป (ม.) - สำหรับคำนวณ Connector</label>
+                    <input type="number" id="purlinSpacing" placeholder="เช่น 1.0" step="0.1" value="1.0">
+                </div>
+            </div>
+
+            <!-- Standard Inputs (Slope) -->
+            <div id="inputs-standard">
+                <div class="form-group">
+                    <label id="lbl-width">2. ความกว้างหน้าอาคาร (ม.)</label>
+                    <input type="number" id="roofWidth" placeholder="ความกว้างแนวนอน" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-run">3. ความยาวแนวราบ (Run) (ม.)</label>
+                    <input type="number" id="roofRun" placeholder="จั่วถึงปลายเสา" step="0.01">
+                </div>
+            </div>
+
+            <!-- Right Triangle Inputs -->
+            <div id="inputs-right-tri" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้างฐาน (Base) (ม.)</label>
+                    <input type="number" id="rightTriBase" placeholder="ความกว้างแนวนอน" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูง (Height) (ม.)</label>
+                    <input type="number" id="rightTriHeight" placeholder="ความสูงด้านที่ยกสูง" step="0.01">
+                </div>
+            </div>
+
+            <!-- Triangle Inputs (Isosceles) -->
+            <div id="inputs-triangle" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความยาวฐาน (Base) (ม.)</label>
+                    <input type="number" id="triBase" placeholder="ความยาวฐานของสามเหลี่ยม" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูง (Height) (ม.)</label>
+                    <input type="number" id="triHeight" placeholder="ความสูงจากฐานถึงยอดจั่ว" step="0.01">
+                </div>
+            </div>
+
+            <!-- Trapezoid Inputs -->
+            <div id="inputs-trapezoid" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width/Base) (ม.)</label>
+                    <input type="number" id="trapWidth" placeholder="ความกว้างรวมแนวนอน" step="0.01">
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>3. สูงซ้าย (L) (ม.)</label>
+                        <input type="number" id="trapHeightL" placeholder="ความสูงด้านซ้าย" step="0.01">
+                    </div>
+                    <div>
+                        <label>4. สูงขวา (R) (ม.)</label>
+                        <input type="number" id="trapHeightR" placeholder="ความสูงด้านขวา" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Irregular Inputs -->
+            <div id="inputs-irregular" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width) (ม.)</label>
+                    <input type="number" id="irrWidth" placeholder="ความกว้างรวมแนวนอน" step="0.01">
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>3. สูงบน-ซ้าย (TL)</label>
+                        <input type="number" id="irrHTL" placeholder="ความสูง" step="0.01">
+                    </div>
+                    <div>
+                        <label>4. สูงบน-ขวา (TR)</label>
+                        <input type="number" id="irrHTR" placeholder="ความสูง" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label>5. สูงล่าง-ซ้าย (BL)</label>
+                        <input type="number" id="irrHBL" value="0" placeholder="ปกติ 0" step="0.01">
+                    </div>
+                    <div>
+                        <label>6. สูงล่าง-ขวา (BR)</label>
+                        <input type="number" id="irrHBR" value="0" placeholder="ปกติ 0" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parallelogram Inputs -->
+            <div id="inputs-parallelogram" style="display:none;">
+                <div class="form-group">
+                    <label>2. ความกว้าง (Width) (ม.)</label>
+                    <input type="number" id="paraWidth" placeholder="ความกว้างหน้าอาคาร" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>3. ความยาวแนวราบ (Run) (ม.)</label>
+                    <input type="number" id="paraRun" placeholder="จั่วถึงปลายเสา" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>4. ระยะเยื้องศูนย์ (Skew) (ม.)</label>
+                    <input type="number" id="paraSkew" value="0" placeholder="ระยะเอียงของด้านข้าง" step="0.01">
+                </div>
+            </div>
+            
+             <!-- Polygon Inputs (Custom Coords & Click-Draw) -->
+            <div id="inputs-polygon" style="display:none;">
+                <!-- ปุ่มขยายเต็มจอ AutoCAD Studio -->
+                <button type="button" onclick="openCadStudio()" class="btn-cad-fullscreen" title="เปิดหน้าต่างเขียนแบบ 2D เต็มจอ สไตล์ AutoCAD">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                    ⛶ ขยายเต็มจอ สไตล์ AutoCAD (CAD Studio)
+                </button>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; margin-bottom:6px;">
+                    <label style="font-weight:bold; margin:0;">2. วาดรูปทรงหลังคา (คลิกวางจุด)</label>
+                    <button type="button" id="btnOrthoMode" class="btn-small" onclick="toggleOrthoMode()" style="padding:3px 8px; font-size:0.75rem; border-radius:6px; border:1px solid #cbd5e1; background:#f8fafc; cursor:pointer;" title="ล็อกเส้นตรงแนวนอน/แนวตั้ง 90° (หรือกด Shift ค้างขณะลาก)">
+                        🔒 ล็อกเส้นตรง (Shift)
+                    </button>
+                </div>
+
+                <!-- ปุ่มเลือกรูปทรงด่วน (Quick Presets) & เครื่องมือ CAD -->
+                <div style="background:#f1f5f9; padding:8px; border-radius:8px; margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <div style="font-size:0.75rem; color:#475569; font-weight:600;">⚡ รูปทรงสำเร็จรูป:</div>
+                        <button type="button" id="btnToggleDrawMode" class="btn-small" onclick="toggleDrawingMode()" style="padding:2px 8px; font-size:0.72rem; background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; font-weight:600; border-radius:4px;" title="เปิด/ปิดโหมดวาดเส้น (คีย์ลัด: L / Esc)">⏹️ จบวาด (Esc)</button>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                        <button type="button" class="btn-small" onclick="loadPolyPreset('gable')" style="padding:4px 8px; font-size:0.75rem; background:#ffffff; border:1px solid #cbd5e1;" title="หน้าจั่วสมมาตร (ตรงตามรูปตัวอย่างที่ 2)">📐 หน้าจั่ว</button>
+                        <button type="button" class="btn-small" onclick="loadPolyPreset('rect')" style="padding:4px 8px; font-size:0.75rem; background:#ffffff; border:1px solid #cbd5e1;" title="สี่เหลี่ยมผืนผ้า (ตรงตามรูปตัวอย่างที่ 1)">▭ สี่เหลี่ยม</button>
+                        <button type="button" class="btn-small" onclick="loadPolyPreset('rightTri')" style="padding:4px 8px; font-size:0.75rem; background:#ffffff; border:1px solid #cbd5e1;">📐 มุมฉาก</button>
+                        <button type="button" class="btn-small" onclick="loadPolyPreset('trapezoid')" style="padding:4px 8px; font-size:0.75rem; background:#ffffff; border:1px solid #cbd5e1;">⏢ คางหมู</button>
+                        <button type="button" class="btn-small" onclick="loadPolyPreset('lshape')" style="padding:4px 8px; font-size:0.75rem; background:#ffffff; border:1px solid #cbd5e1;">⌐ ทรงตัว L</button>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; padding-top:6px; border-top:1px dashed #cbd5e1;">
+                        <span style="font-size:0.72rem; color:#475569; font-weight:600; align-self:center;">เครื่องมือ:</span>
+                        <input type="file" id="cadBgFileInput" accept="image/*,application/pdf" style="display:none;" onchange="handleCadBgFileSelect(event)">
+                        <button type="button" class="btn-small" onclick="triggerCadBgUpload()" style="padding:2px 6px; font-size:0.72rem; background:#fef2f2; border:1px solid #fecaca; color:#dc2626;" title="นำเข้าภาพแบบแปลน หรือไฟล์ PDF เพื่อดราฟต์หลังคาทับ">🖼️ ภาพ/PDF...</button>
+                        <button type="button" id="inlineBtnArc" class="btn-small" onclick="startCadArc()" style="padding:2px 6px; font-size:0.72rem; background:#ecfeff; border:1px solid #a5f3fc; color:#0891b2;" title="วาดเส้นโค้ง 3 จุด (คีย์ลัด: A หรือ ARC)">⌒ ส่วนโค้ง (A)</button>
+                        <button type="button" class="btn-small" onclick="startCadMeasure()" style="padding:2px 6px; font-size:0.72rem; background:#ecfdf5; border:1px solid #a7f3d0; color:#059669;" title="วัดเช็คระยะทางตรง ระยะราบ ΔX ระยะดิ่ง ΔY และมุม (คีย์ลัด: DI)">📏 วัดระยะ (DI)</button>
+                        <button type="button" class="btn-small" onclick="applyPolygonOffset(0.60)" style="padding:2px 6px; font-size:0.72rem; background:#f0f9ff; border:1px solid #bae6fd; color:#0284c7;" title="ออฟเซ็ตขยายขอบหลังคาทุกด้าน 0.60 ม. (ชายคายื่น)">📐 +0.60m รอบรูป</button>
+                        <button type="button" class="btn-small" onclick="startCadOffsetCommand()" style="padding:2px 6px; font-size:0.72rem; background:#f0f9ff; border:1px solid #bae6fd; color:#0284c7;" title="เลือกคำสั่งแล้วคลิกเส้นที่ต้องการออฟเซ็ต (คีย์ลัด: O)">📐 Offset (O)...</button>
+                        <button type="button" class="btn-small" onclick="polyMirrorPolygon('x')" style="padding:2px 6px; font-size:0.72rem; background:#faf5ff; border:1px solid #e9d5ff; color:#7e22ce;" title="พลิกกลับด้านรูปทรง ซ้าย-ขวา (คีย์ลัด: MI)">🪞 พลิกด้าน</button>
+                        <button type="button" class="btn-small" onclick="polyRotatePolygon(90)" style="padding:2px 6px; font-size:0.72rem; background:#fffbeb; border:1px solid #fef3c7; color:#d97706;" title="หมุนรูปทรง 90 องศา (คีย์ลัด: RO)">🔄 หมุน 90°</button>
+                        <button type="button" id="inlineBtnCoords" class="btn-small" onclick="toggleCadCoords()" style="padding:2px 6px; font-size:0.72rem; background:#f1f5f9; border:1px solid #cbd5e1; color:#64748b;" title="เปิด/ปิดการแสดงตัวเลขพิกัด (X, Y) บนจุด">📍 พิกัด (ปิด)</button>
+                        <button type="button" id="inlineBtnGuide" class="btn-small" onclick="startCadGuide()" style="padding:2px 6px; font-size:0.72rem; background:#fffbeb; border:1px solid #fde68a; color:#b45309;" title="สร้างเส้นไกด์ไลน์ช่วยร่างแบบ (คีย์ลัด: G หรือ XL)">📐 ไกด์ (G)</button>
+                        <button type="button" id="inlineBtnClearGuides" class="btn-small" onclick="clearCadGuides()" style="padding:2px 6px; font-size:0.72rem; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; display:none;" title="ลบเส้นไกด์ไลน์ทั้งหมด">🗑️ ล้างไกด์</button>
+                    </div>
+                </div>
+
+                <!-- แถบควบคุมภาพพื้นหลัง (แสดงเมื่อมีการโหลดรูปหรือ PDF) -->
+                <div id="inlineBgControlBar" class="inline-bg-bar" style="display:none;">
+                    <span id="inlineBgFileName" style="font-weight:700; color:#0284c7; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 แบบแปลน</span>
+                    <button type="button" id="inlineBtnCalibrate" class="btn-small" onclick="startCadCalibrateScale()" style="padding:2px 6px; font-size:0.72rem; background:#fef3c7; border:1px solid #fde68a; color:#d97706;" title="คลิก 2 จุดบนแบบแปลนเพื่อตั้งสเกลเมตรจริง (กดอีกครั้งเพื่อปิด)">📏 Calibrate</button>
+                    <label style="font-size:0.72rem; color:#64748b; display:flex; align-items:center; gap:3px;">
+                        จาง: <input type="range" min="0.1" max="1" step="0.05" value="0.55" class="cad-bg-slider" oninput="setCadBgOpacity(this.value)">
+                    </label>
+                    <button type="button" id="inlineBtnBgLock" class="btn-small" onclick="toggleCadBgLock()" style="padding:2px 6px; font-size:0.72rem;" title="ล็อก/ปลดล็อกเพื่อเลื่อนตำแหน่ง">🔒 ล็อก</button>
+                    <span id="inlinePdfPageNav" style="display:none; gap:3px; align-items:center;">
+                        <button type="button" class="btn-small" onclick="changeCadPdfPage(-1)" style="padding:1px 5px; font-size:0.7rem;" title="หน้าก่อนหน้า">◀</button>
+                        <span style="font-size:0.7rem; color:#475569;">หน้า</span>
+                        <input type="number" id="inlinePdfPageInput" min="1" max="1" value="1" style="width:38px; padding:1px 2px; font-size:0.72rem; text-align:center; border:1px solid #cbd5e1; border-radius:3px; font-weight:600;" onchange="goToCadPdfPage(this.value)" title="พิมพ์เลขหน้าที่ต้องการแล้วกด Enter">
+                        <span id="inlinePdfTotalPages" style="font-size:0.7rem; color:#475569;">/ 1</span>
+                        <button type="button" class="btn-small" onclick="changeCadPdfPage(1)" style="padding:1px 5px; font-size:0.7rem;" title="หน้าถัดไป">▶</button>
+                    </span>
+                    <button type="button" class="btn-small" onclick="removeCadBgImage()" style="padding:2px 6px; font-size:0.72rem; background:#fee2e2; border:1px solid #fca5a5; color:#b91c1c;" title="ลบภาพพื้นหลัง">🗑️</button>
+                </div>
+
+                <!-- ผืนผ้าใบวาดรูปทรงหลังคา -->
+                <canvas id="polyDrawCanvas" style="width:100%; height:270px; border:1.5px solid #cbd5e1; border-radius:8px; background:#fff; cursor:crosshair; touch-action:none;"></canvas>
+                
+                <div style="font-size:0.75rem; color:#64748b; margin-top:5px; line-height:1.4; background:#f8fafc; padding:6px 8px; border-radius:6px;">
+                    💡 <strong>วิธีใช้:</strong> นำเข้ารูป/PDF แบบแปลนแล้วกด <strong>📏 Calibrate</strong> ตั้งสเกลจริง · คลิกวางจุด (มี <strong>Auto-Snap ตรงแนว</strong>) · ดับเบิลคลิกเพื่อเปิด CAD Studio เต็มจอ
+                </div>
+
+                <!-- การตั้งค่าการมุงแผ่นและมาตราส่วน -->
+                <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:8px; margin-top:8px;">
+                    <div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="font-size:0.8rem; font-weight:600; color:#1e293b;">📍 ทิศทางและจุดเริ่มมุง</label>
+                            <button type="button" id="btnPickStartPoint" class="btn-small" onclick="togglePickStartMode()" style="padding:2px 6px; font-size:0.72rem; border-radius:4px; border:1px solid #16a34a; color:#16a34a; background:#f0fdf4;" title="คลิกเพื่อเปิดโหมดจิ้มเลือกจุดมุมบนผืนผ้าใบเป็นจุดเริ่มมุงแผ่นแรก">📍 จิ้มเลือกจุดบนภาพ</button>
+                        </div>
+                        <select id="polyStartSide" onchange="if(calcData.calculated) calculate(); redrawPolyEditor();" style="padding:6px 8px; font-size:0.85rem; margin-top:3px;">
+                            <option value="left">ซ้ายสุด → ขวา</option>
+                            <option value="right">ขวาสุด → ซ้าย</option>
+                            <option value="center">กึ่งกลาง / ยอดจั่ว</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:600; color:#1e293b;">ระยะเลื่อน Offset (ม.)</label>
+                        <input type="number" id="polyStartOffset" value="0.00" step="0.05" placeholder="0.00" onchange="if(calcData.calculated) calculate();" style="padding:6px 8px; font-size:0.85rem; margin-top:3px;">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; margin-top:8px;">
+                    <div>
+                        <label style="font-size:0.75rem; color:#64748b;">1 ช่องกริด = (ม.)</label>
+                        <input type="number" id="polyGridStep" value="0.5" min="0.05" step="0.05" onchange="redrawPolyEditor()" style="padding:5px 8px; font-size:0.82rem;">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button type="button" class="btn-small" onclick="polyCloseShape()" style="width:100%; padding:6px 4px; font-size:0.8rem; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;">✓ ปิดรูปทรง</button>
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button type="button" class="btn-small" onclick="polyUndo()" style="width:100%; padding:6px 4px; font-size:0.8rem;">↩ ย้อนกลับ</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                    <button type="button" class="btn-small" onclick="clearPoints()" style="color:#dc2626; border:1px solid #fecaca; background:#fff; font-size:0.75rem; padding:3px 8px;">🗑️ ล้างจุดทั้งหมด</button>
+                </div>
+
+                <!-- ตารางกรอกพิกัดแบบเดิม (ซ่อนในเมนูแบบยุบได้) -->
+                <details style="margin-top:10px; border-top:1px dashed #e2e8f0; padding-top:8px;">
+                    <summary style="font-size:0.8rem; color:#64748b; cursor:pointer; font-weight:600;">⌨️ กรอกพิกัด X, Y ด้วยตัวเลข (แบบละเอียด)</summary>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 80px; gap:8px; margin-top:8px;">
+                        <input type="number" id="polyX" placeholder="X (กว้าง)" step="0.1">
+                        <input type="number" id="polyY" placeholder="Y (ลึก)" step="0.1">
+                        <button type="button" class="btn-add" onclick="addPoint()">+ เพิ่ม</button>
+                    </div>
+                </details>
+                <div class="point-list" id="pointListContainer" style="margin-top:8px; max-height:140px; overflow-y:auto;">
+                     <div style="padding:8px; text-align:center; color:#999; font-size:0.85rem;">ยังไม่มีจุดพิกัด (คลิกบนผืนผ้าใบเพื่อเริ่มวาด)</div>
+                </div>
+            </div>
+
+            <!-- 10. Louver Inputs -->
+            <div id="inputs-louver" style="display:none;">
+                <div class="form-group">
+                    <label>1. เลือกรุ่นบานเกล็ด</label>
+                    <select id="louverTypeModel" onchange="updateLouverInfo()">
+                        <option value="304|5" selected>LOUVER TYPE-304 (ใช้ 5 แผ่น/เมตร)</option>
+                        <option value="457|3">LOUVER TYPE-457 (ใช้ 3 แผ่น/เมตร)</option>
+                        <option value="610|2">LOUVER TYPE-610 (ใช้ 2 แผ่น/เมตร)</option>
+                        <option value="custom|0">กำหนดจำนวนแผ่นเอง...</option>
+                    </select>
+                    <div id="louverModelInfo" class="model-info">✓ สูง 1 เมตร จะใช้บานเกล็ด 5 แผ่น</div>
+                    <!-- เพิ่ม Input สำหรับกำหนดจำนวนแผ่นเอง (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+                    <div id="customLouverBox" class="custom-width-box" style="display: none; margin-top: 10px;">
+                        <label>ระบุจำนวนบานเกล็ดที่ใช้ต่อความสูง 1 เมตร (แผ่น):</label>
+                        <input type="number" id="customLouverDensity" placeholder="เช่น 4" step="0.1" value="4" onchange="if(calcData.calculated) calculate()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>2. ความกว้างช่องเปิด (ม.) แนวนอน</label>
+                    <input type="number" id="louverWidth" placeholder="ความยาวของแนวยึดบานเกล็ด" step="0.01">
+                    <div style="font-size:0.75rem; color:#888; margin-top:4px;">* หากยาวเกิน 6 เมตร ระบบจะทำการแยกแผ่นตัดให้อัตโนมัติ</div>
+                </div>
+                <div class="form-group">
+                    <label>3. ความสูงช่องเปิด (ม.) แนวตั้ง</label>
+                    <input type="number" id="louverHeight" placeholder="ความสูงจากบนลงล่าง" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>4. ระยะ @ ขารับบานเกล็ด (ม.)</label>
+                    <input type="number" id="louverStrapSpacing" value="1.00" step="0.1">
+                </div>
+                <div class="form-group" style="background: #fdf2f8; padding: 10px; border-radius: 8px; border: 1px solid #fbcfe8;">
+                    <label style="color: #be185d;">5. รูปแบบแผ่นครอบ (Flashing)</label>
+                    <select id="louverFlashingType" style="border-color: #fbcfe8; background-color: #fff;" onchange="if(calcData.calculated) calculate()">
+                        <option value="none" selected>ไม่ติดแผ่นครอบ</option>
+                        <option value="vertical">ครอบเฉพาะเสาแนวตั้ง (ตามระยะ @)</option>
+                        <option value="perimeter">ครอบขอบรอบช่องเปิด (เต็มรูป)</option>
+                        <option value="both">ครอบเต็มรูป + เสาแนวตั้งตามระยะ @</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div id="input-overhang-container">
+                    <label>4. ยื่นชายคา (ม.)</label>
+                    <input type="number" id="overhang" value="1.00" step="0.01">
+                </div>
+                <div>
+                    <div id="input-angle">
+                        <label>5. ความชัน (°)</label>
+                        <input type="number" id="angle" value="5" step="0.5">
+                    </div>
+                    <div id="input-curve-height" style="display:none;">
+                        <label>5. กำหนดส่วนโค้ง</label>
+                        <div class="curve-mode-selector">
+                            <div class="curve-mode-btn active" id="btn-mode-h" onclick="setCurveMode('h')">จากความสูง (H)</div>
+                            <div class="curve-mode-btn" id="btn-mode-r" onclick="setCurveMode('r')">จากรัศมี (R)</div>
+                        </div>
+                        <input type="number" id="curveValue" value="1.50" step="0.1" placeholder="ระบุความสูง H (ม.)">
+                        <div id="curve-hint" style="font-size:0.75rem; color:#666; margin-top:4px; text-align:right;"></div>
+                        
+                        <div style="margin-top:10px; background:#fff3e0; padding:8px; border-radius:6px; border:1px solid #ffe0b2;">
+                            <label style="cursor:pointer; display:flex; align-items:center; margin:0; font-size:0.9rem; color:#e65100;">
+                                <input type="checkbox" id="straightEaves" onchange="if(calcData.calculated) calculate()" style="width:16px; height:16px; margin-right:8px; accent-color:#e65100;">
+                                ชายคาเป็นแผ่นตรง
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ตัวเลือกซอยแผ่นตามความยาวโค้ง (เต็มความกว้างแผง แสดงเฉพาะโหมดทรงโค้ง) -->
+            <div id="curve-split-box" class="form-group" style="display:none; background:#eff6ff; padding:12px; border-radius:10px; border:1px dashed #3b82f6;">
+                <label style="color:#1d4ed8; margin-bottom:8px;">✂️ 6. ซอยแผ่นตามความยาวโค้ง</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; color:#3b5bdb;">จำนวนแผ่น</label>
+                        <input type="number" id="curvePieces" value="1" min="1" max="20" step="1" onchange="updateCurvePieceInputs()">
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; color:#3b5bdb;">ทับซ้อน (ม.)</label>
+                        <input type="number" id="curveOverlap" value="0.20" min="0" step="0.05" onchange="if(calcData.calculated) calculate()">
+                    </div>
+                </div>
+                <label style="cursor:pointer; display:flex; align-items:center; margin-top:10px; margin-bottom:0; font-size:0.88rem; color:#1e40af;">
+                    <input type="checkbox" id="curveCustomLen" onchange="updateCurvePieceInputs()" style="width:16px; height:16px; margin-right:8px; accent-color:#1d4ed8;">
+                    กำหนดแผ่นหลักเอง (ที่เหลืออัตโนมัติ)
+                </label>
+                <div id="curvePieceInputs" style="display:none; margin-top:10px;"></div>
+                <div id="curvePieceHint" style="font-size:0.75rem; color:#64748b; margin-top:6px;"></div>
+            </div>
+
+            <!-- การย้ำโค้ง (แสดงเฉพาะโหมดย้ำโค้งโดรม) -->
+            <div id="crimp-curve-box" class="form-group" style="display:none; background:#fdf4ff; padding:12px; border-radius:10px; border:1px dashed #a855f7;">
+                <label style="color:#7e22ce; margin-bottom:8px;">⚙️ 7. การย้ำโค้ง</label>
+                <label style="font-size:0.8rem; color:#7e22ce;">1 ย้ำ ใส่กี่องศา (°)</label>
+                <input type="number" id="crimpDegree" value="6.4" min="0.5" step="0.1" onchange="if(calcData.calculated) calculate()">
+                <label style="font-size:0.8rem; color:#7e22ce; margin-top:10px;">รูปแบบตำแหน่งย้ำ</label>
+                <select id="crimpEdgeMode" onchange="if(calcData.calculated) calculate()">
+                    <option value="edge">ย้ำชิดขอบทั้งสองฝั่ง (ย้ำแรกที่จุดเริ่มโค้ง)</option>
+                    <option value="inset">เว้นขอบ 1 ช่องทั้งสองฝั่ง</option>
+                </select>
+                <div style="font-size:0.75rem; color:#64748b; margin-top:6px;">* ระบบจะคำนวณจำนวนย้ำและระยะห่างย้ำจริงให้อัตโนมัติ</div>
+            </div>
+            <div class="form-group">
+                <label>ราคาต่อเมตร (บาท)</label>
+                <input type="number" id="pricePerMeter" placeholder="เช่น 120 (ใส่ 0 หากไม่ระบุ)" step="1">
+            </div>
+            
+            <div id="warningMsg" class="warning-msg"></div>
+
+            <button class="btn-calc" onclick="calculate()"><span>คำนวณผลลัพธ์</span></button>
+        </div>
+
+        <!-- 2. VISUALIZER & RESULTS (RIGHT) -->
+        <div class="panel center-panel">
+            <div id="exportArea">
+                <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>📊 ภาพจำลองและสรุปผล</span>
+                    <button type="button" class="btn-print-drawing" onclick="printDrawingOnly()" title="พิมพ์เฉพาะภาพแบบแปลนแผ่นมุงนี้ เต็มหน้ากระดาษ A4 (ไม่รวมข้อมูลอื่น)">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                        🖨️ พิมพ์เฉพาะแบบแปลน (A4)
+                    </button>
+                </div>
+
+                <!-- 1. ส่วนแบบแปลนผังการมุงแผ่น (Drawing Sheet Page ในโหมด Print) -->
+                <div id="drawing-print-page" class="drawing-page-container">
+                    <!-- Header เฉพาะหน้าแบบแปลนตอน Print -->
+                    <div id="drawing-print-header" class="drawing-print-header">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom: 2.5px solid #E30613; padding-bottom: 8px; margin-bottom:12px;">
+                            <div>
+                                <h2 style="margin:0; color:#E30613; font-size:1.35rem; font-weight:700;">📐 แบบแปลนผังการเรียงแผ่นเมทัลชีท (Roof Sheet Layout Plan)</h2>
+                                <p style="margin:3px 0 0; color:#475569; font-size:0.85rem;" id="drawing-print-sub">-</p>
+                            </div>
+                            <div style="text-align:right; font-size:0.8rem; color:#64748b; line-height:1.4;">
+                                <strong style="color:#0f172a;">Sangthai Metal Sheet</strong><br>
+                                วันที่พิมพ์: <span id="drawing-print-date">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-wrapper" id="canvasContainer">
+                        <canvas id="roofCanvas"></canvas>
+                    </div>
+
+                    <!-- Footer / Title Block เฉพาะหน้าแบบแปลนตอน Print -->
+                    <div id="drawing-print-footer" class="drawing-print-footer">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1.5px solid #cbd5e1; padding-top: 8px; font-size: 0.78rem; color: #64748b;">
+                            <div><strong>หมายเหตุ:</strong> ตรวจสอบระยะหน้างานจริงก่อนการสั่งตัด · ระบบคำนวณแสงไทยเมทัลชีท</div>
+                            <div style="display:flex; gap:25px;">
+                                <div>ผู้จัดทำ: ____________________</div>
+                                <div>ผู้ตรวจสอบ: ____________________</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. ส่วนรายงานสรุปราคาและรายการตัดแผ่น (Quotation & Cut List Page ในโหมด Print) -->
+                <div id="print-summary-section">
+                    <!-- Header เฉพาะตอน Print ใบรายการ -->
+                    <div id="print-header" style="margin-bottom:15px; border-bottom:2px solid #E30613; padding-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                            <div>
+                                <h2 style="margin:0; color:#E30613; font-size:1.4rem;">ใบรายการคำนวณเมทัลชีท/บานเกล็ด</h2>
+                                <p style="margin:3px 0 0; color:#666; font-size:0.85rem;">Sangthai Metal Sheet Calculator System <span style="font-style:italic;">(by Sarayut Boonkong)</span></p>
+                            </div>
+                            <div style="text-align:right; font-size:0.8rem; color:#888;">
+                                วันที่: <span id="print-date">-</span><br>
+                                เวลา: <span id="print-time">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Summary เฉพาะตอน Print -->
+                    <div id="print-inputs" style="margin-bottom:15px; background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #eee;">
+                        <h3 style="margin-top:0; font-size:0.95rem; color:#2c3e50; border-bottom:1px solid #ddd; padding-bottom:4px;">📌 สรุปข้อมูลหน้างาน (Input Data)</h3>
+                        <table class="print-table">
+                            <tr>
+                                <td><strong>ประเภท/รุ่น:</strong> <span id="print-type">-</span> <span id="print-model"></span></td>
+                                <td><strong>กว้าง/ฐาน:</strong> <span id="print-width">-</span> ม.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ระยะ/ช่วงเสา/สูง:</strong> <span id="print-run">-</span> ม.</td>
+                                <td><strong>ความชัน/โค้ง:</strong> <span id="print-slope-h">-</span></td>
+                            </tr>
+                            <tr id="print-roof-only-row">
+                                <td><strong>ยื่นชายคา:</strong> <span id="print-overhang">-</span> ม.</td>
+                                <td></td>
+                            </tr>
+                            <tr id="print-louver-only-row" style="display:none;">
+                                <td><strong>ระยะ @ ขารับ:</strong> <span id="print-spacing">-</span> ม.</td>
+                                <td><strong>จำนวนแถว:</strong> <span id="print-rows">-</span> แถว</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ราคาต่อหน่วย:</strong> <span id="print-uprice">-</span> บาท</td>
+                                <td><strong id="print-flashing-label" style="display:none;">รูปแบบแผ่นครอบ:</strong> <span id="print-flashing-type"></span></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="result-grid" id="resultGrid" style="display: none;">
+                        <div class="result-card highlight">
+                            <span class="card-label" id="labelLength">ความยาวแผ่นตัด</span>
+                            <span class="card-value primary" id="outLength">-</span>
+                        </div>
+                        <div class="result-card highlight">
+                            <span class="card-label">จำนวนแผ่นเมทัลชีท/บานเกล็ด</span>
+                            <span class="card-value primary" id="outCount">-</span>
+                        </div>
+                        <div class="result-card" id="areaCard">
+                            <span class="card-label">พื้นที่ขาย / พื้นที่จริง</span>
+                            <div style="display:flex; justify-content:space-around; align-items:baseline; margin-top:5px;">
+                                <div style="text-align:center;">
+                                     <div class="card-value" id="outAreaBillable" style="font-size:1.2rem;">-</div>
+                                     <div style="font-size:0.8rem; color:#888;">ซื้อ (ตร.ม.)</div>
+                                </div>
+                                <div style="border-left:1px solid #ddd; height:30px;"></div>
+                                <div style="text-align:center;">
+                                     <div class="card-value" id="outAreaReal" style="font-size:1.2rem; color:#666;">-</div>
+                                     <div style="font-size:0.8rem; color:#888;">จริง (ตร.ม.)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- New Gable Area for Curve -->
+                    <div id="curveGableRow" style="display:none; background:#e8f5e9; padding:10px 15px; border-radius:8px; margin-bottom:15px; border:1px solid #c8e6c9; color:#2e7d32;">
+                        <strong>📐 พื้นที่ปิดจั่ว/ผนังข้าง (Gable Area):</strong> 
+                        <span id="outGableArea" style="font-weight:bold; font-size:1.1rem; margin-left:10px;">0</span> ตร.ม. 
+                        <span style="font-size:0.8rem; opacity:0.8;">(พื้นที่ใต้ท้องโค้ง 1 ด้าน)</span>
+                    </div>
+
+                    <!-- ข้อมูลการย้ำโค้ง (โหมดย้ำโค้งโดรม) -->
+                    <div id="crimpInfoRow" style="display:none; background:#fdf4ff; padding:10px 15px; border-radius:8px; margin-bottom:15px; border:1px solid #e9d5ff; color:#6b21a8;">
+                        <strong>⚙️ การย้ำโค้ง:</strong>
+                        จำนวนย้ำ <span id="outCrimpCount" style="font-weight:bold; font-size:1.1rem;">0</span> ครั้ง/แผ่น
+                        · องศาจริง <span id="outCrimpDegree" style="font-weight:bold;">0</span>°/ย้ำ
+                        · ระยะห่างย้ำ <span id="outCrimpSpacing" style="font-weight:bold; font-size:1.1rem;">0</span> ซม.
+                        <span style="font-size:0.8rem; opacity:0.8;">(ครอบคลุมเฉพาะส่วนโค้ง)</span>
+                    </div>
+
+                    <div id="priceRow" class="price-summary">
+                        <span>💰 ราคาประเมินรวม</span>
+                        <span style="font-size:1.5rem; font-weight:bold;" id="outPrice">0 บาท</span>
+                    </div>
+
+                    <div class="accessory-list" id="accessoryList" style="display: none;">
+                        <div id="roof-accessories">
+                            <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบหลังคา/ผนัง (ประมาณการ):</strong>
+                            <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
+                                <li id="connectorRow" style="display: none; color: #0d47a1;">
+                                    ขาคลิปล็อค/คอนเนคเตอร์: <span id="outConnector" style="font-weight:bold;">0</span> ตัว 
+                                    <span id="connectorDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                                </li>
+                                <li>
+                                    สกรูยึดแผ่น (ยาว): <span id="outScrewMain" style="font-weight:bold;">0</span> ตัว 
+                                    <span id="screwMainDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                                </li>
+                                <li>
+                                    <span id="lblScrewFlash">สกรูยึดครอบ (สั้น):</span> <span id="outScrewFlash" style="font-weight:bold;">0</span> ตัว 
+                                    <span id="screwFlashDetail" style="font-size:0.85em; color:#666; margin-left:5px;"></span>
+                                </li>
+                                <li>แผ่นครอบ (Flashing) รวมราง: <span id="outFlash" style="font-weight:bold;">0</span> เมตร</li>
+                            </ul>
+                        </div>
+                        
+                        <div id="louver-accessories" style="display:none;">
+                            <strong style="display:block; margin-bottom:10px;">📦 อุปกรณ์ประกอบบานเกล็ด:</strong>
+                            <ul style="margin: 0 0 0 20px; padding:0; line-height: 1.8;">
+                                <li style="color: #0d47a1;">
+                                    ขาจับบานเกล็ด (Louver Strap): <span id="outLouverStraps" style="font-weight:bold; font-size:1.2em;">0</span> ตัว 
+                                    <div id="louverStrapDetail" style="font-size:0.85em; color:#666; margin-left:0px;">สูตร: (ความยาวรวม / ระยะ@) * 2</div>
+                                </li>
+                                <li style="color: #d84315;">
+                                    สกรูสั้นยึดขาจับ: <span id="outLouverScrews" style="font-weight:bold; font-size:1.2em;">0</span> ตัว 
+                                    <div style="font-size:0.85em; color:#666; margin-left:0px;">สูตร: ขาจับ 1 ตัว ใช้สกรูสั้น 2 ตัว</div>
+                                </li>
+                                <!-- Flashing Info for Louver -->
+                                <li style="color: #059669; display: none; border-top: 1px dashed #ddd; margin-top: 5px; padding-top: 5px;" id="louverFlashingRow">
+                                    แผ่นครอบ (Flashing): <span id="outLouverFlashing" style="font-weight:bold; font-size:1.2em;">0</span> เมตร
+                                    <div id="louverFlashingDetail" style="font-size:0.85em; color:#666; margin-left:0px;">-</div>
+                                </li>
+                                <li style="color: #059669; display: none;" id="louverFlashingScrewRow">
+                                    สกรูยึดแผ่นครอบ (สั้น): <span id="outLouverFlashingScrews" style="font-weight:bold; font-size:1.2em;">0</span> ตัว
+                                    <div style="font-size:0.85em; color:#666; margin-left:0px;">(ประเมินการยิงสกรู 3.5 ตัว/เมตร)</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Formula Box for Triangle/Trapezoid -->
+                    <div id="cuttingFormula" class="formula-box">
+                        <h4>🧮 วิธีคำนวณ (สูตรตรวจสอบ)</h4>
+                        <div id="formulaContent"></div>
+                    </div>
+
+                    <!-- Cutting Sheet List Output -->
+                    <div id="cuttingSheetList" class="cutting-list-container">
+                        <div class="cutting-list-header">
+                            <span>✂️ รายการตัดแผ่น (Cutting List)</span>
+                            <span style="font-size:0.8rem; font-weight:normal; color:#666;" id="cutListDesc">(เรียงจากฝั่งยาวสุดไปสั้นสุด)</span>
+                        </div>
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="cutting-table">
+                                <thead id="cuttingTableHead">
+                                    <tr>
+                                        <th>แผ่นที่</th>
+                                        <th>ระยะ (ม.)</th>
+                                        <th>ความยาวตัด (ม.)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sheetListBody">
+                                    <!-- JS Populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> <!-- End print-summary-section -->
+
+            </div>
+        </div>
+    </div> <!-- End Main Content -->
+    
+    <!-- Wrapper for Awning Iframe Mode -->
+    <div id="awning-wrapper" style="display: none; flex-direction: column; flex-grow: 1; background: #f1f5f9; min-height: 800px; border-top: 1px solid #cbd5e1;">
+        <div style="padding: 12px 24px; background: white; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index: 10;">
+            <button onclick="toggleRoofType('slope')" style="padding: 8px 16px; background: #E30613; color: white; border: none; border-radius: 8px; cursor: pointer; font-family: 'Sarabun', sans-serif; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; box-shadow: 0 2px 4px rgba(227, 6, 19, 0.2);">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                กลับไปหน้าเครื่องคำนวณหลัก
+            </button>
+            <div style="font-size: 0.95rem; color: #475569; font-weight: 600;">โหมดพิเศษ: <span style="color: #4f46e5;">ย้ำโค้ง (Awning - Elite V9)</span></div>
+        </div>
+        <iframe id="awning-iframe" style="width: 100%; height: 100%; min-height: 800px; border: none; flex-grow: 1;"></iframe>
+    </div>
+
+</div> <!-- End Container -->
+
+    <!-- ============================================================
+         AutoCAD Full-Screen 2D Drawing Studio Modal
+         ============================================================ -->
+    <div id="cadStudioModal" class="cad-modal" style="display:none;">
+        <!-- CAD Top Toolbar -->
+        <div class="cad-header">
+            <div class="cad-title-group">
+                <div class="cad-badge">CAD 2D</div>
+                <div>
+                    <div class="cad-title">AutoCAD Drawing Studio — ระบบวาดหลังคาอิสระ</div>
+                    <div class="cad-subtitle">วาดอิสระ · พิมพ์ระยะแล้ว Enter · กด F8/Shift ล็อกแกนฉาก · Pan & Zoom ด้วยลูกกลิ้งเมาส์</div>
+                </div>
+            </div>
+            
+            <!-- Center Tools -->
+            <div class="cad-tools-center">
+                <div class="cad-btn-group">
+                    <button type="button" class="cad-btn" onclick="loadPolyPreset('gable'); cadZoomExtents();" title="หน้าจั่วสมมาตร (ตรงตามรูปตัวอย่างที่ 2)">📐 หน้าจั่ว</button>
+                    <button type="button" class="cad-btn" onclick="loadPolyPreset('rect'); cadZoomExtents();" title="สี่เหลี่ยมผืนผ้า (ตรงตามรูปตัวอย่างที่ 1)">▭ สี่เหลี่ยม</button>
+                    <button type="button" class="cad-btn" onclick="loadPolyPreset('rightTri'); cadZoomExtents();">📐 มุมฉาก</button>
+                    <button type="button" class="cad-btn" onclick="loadPolyPreset('trapezoid'); cadZoomExtents();">⏢ คางหมู</button>
+                    <button type="button" class="cad-btn" onclick="loadPolyPreset('lshape'); cadZoomExtents();">⌐ ตัว L</button>
+                </div>
+
+                <div class="cad-btn-group">
+                    <button type="button" id="cadBtnLine" class="cad-btn active" onclick="toggleDrawingMode()" title="เปิด/ปิดคำสั่งวาดเส้นตรง LINE (คีย์ลัด: L หรือ Esc เพื่อจบ)">✏️ Line (L)</button>
+                    <button type="button" id="cadBtnArc" class="cad-btn" onclick="startCadArc()" style="color:#06b6d4;" title="วาดเส้นโค้ง 3 จุด (3-Point Arc: จุดเริ่ม -> จุดยอดโค้ง -> จุดสิ้นสุด) คีย์ลัด: A">⌒ Arc (A)</button>
+                    <button type="button" id="cadBtnGuide" class="cad-btn" onclick="startCadGuide()" style="color:#f59e0b;" title="สร้างเส้นไกด์ไลน์ช่วยร่างแบบ (Construction Line / XLINE) คีย์ลัด: G หรือ XL">📐 ไกด์ (G)</button>
+                    <button type="button" id="cadBtnMeasure" class="cad-btn" onclick="startCadMeasure()" style="color:#34d399;" title="วัดเช็คระยะทางตรง ระยะราบ ΔX ระยะดิ่ง ΔY และมุม (คีย์ลัด: DI)">📏 วัดระยะ (DI)</button>
+                    <button type="button" id="cadBtnOffset" class="cad-btn" onclick="startCadOffsetCommand()" style="color:#38bdf8;" title="ออฟเซ็ตขยายขอบหลังคา/ระยะยื่นชายคา (คีย์ลัด: O)">📐 Offset (O)</button>
+                    <button type="button" class="cad-btn" onclick="cadOpenPrompt('mirror')" title="พลิกกลับด้านรูปทรง (คีย์ลัด: MI หรือ M)">🪞 Mirror (MI)</button>
+                    <button type="button" class="cad-btn" onclick="cadOpenPrompt('rotate')" title="หมุนรูปทรงตามองศา (คีย์ลัด: RO หรือ R)">🔄 Rotate (RO)</button>
+                    <button type="button" class="cad-btn" onclick="cadOpenPrompt('scale')" title="ย่อ/ขยายสเกลรูปทรง (คีย์ลัด: SC)">🔍 Scale</button>
+                </div>
+
+                <div class="cad-btn-group">
+                    <button type="button" id="cadBtnOrtho" class="cad-btn" onclick="toggleCadOrtho()" title="ล็อกเส้นตรงฉาก 90° (คีย์ลัด: F8 หรือกด Shift ค้าง)">🔒 Ortho (F8)</button>
+                    <button type="button" id="cadBtnSnap" class="cad-btn active" onclick="toggleCadSnap()" title="จับจุดปลายเส้น/กึ่งกลาง (OSNAP)">🧲 Snap</button>
+                    <button type="button" id="cadBtnGrid" class="cad-btn active" onclick="toggleCadGrid()" title="เปิด/ปิดเส้นกริด">▦ Grid</button>
+                    <button type="button" id="cadBtnGuideVis" class="cad-btn active" onclick="toggleCadGuidesVisibility()" title="เปิด/ปิดการแสดงเส้นไกด์ไลน์">👁️ ไกด์</button>
+                    <button type="button" id="cadBtnClearGuides" class="cad-btn" onclick="clearCadGuides()" style="color:#fbbf24;" title="ลบเส้นไกด์ไลน์ทั้งหมด">🗑️ ไกด์</button>
+                    <button type="button" id="cadBtnCoords" class="cad-btn" onclick="toggleCadCoords()" title="เปิด/ปิดการแสดงพิกัด (X, Y) บนจุดและหน้าจอ (คีย์ลัด: ID)">📍 พิกัด (ปิด)</button>
+                    <button type="button" id="cadBtnOverlay" class="cad-btn active" onclick="toggleCadSheetOverlay()" title="แสดงภาพจำลองแผ่นเมทัลชีทและลูกศรตัด">👁️ แผ่นเมทัลชีท</button>
+                    <button type="button" id="cadBtnPickStart" class="cad-btn" onclick="togglePickStartMode()" title="คลิกเลือกจุดมุมบนหลังคา เพื่อตั้งเป็นแนวเริ่มมุงแผ่นแรก">📍 เริ่มมุง</button>
+                </div>
+
+                <div class="cad-btn-group">
+                    <button type="button" class="cad-btn" onclick="triggerCadBgUpload()" style="color:#f43f5e;" title="นำเข้าภาพแบบแปลน หรือไฟล์ PDF เพื่อดราฟต์หลังคาทับ">🖼️ ภาพ/PDF</button>
+                    <button type="button" id="cadBtnCalibrate" class="cad-btn" onclick="startCadCalibrateScale()" style="display:none; color:#f59e0b;" title="คลิก 2 จุดบนแบบแปลนเพื่อตั้งสเกลเมตรจริง">📏 Calibrate</button>
+                </div>
+
+                <div class="cad-btn-group">
+                    <button type="button" class="cad-btn" onclick="cadZoomExtents()" title="ปรับมุมมองให้พอดีหน้าจอ (คีย์ลัด: ZE)">🔍 พอดีจอ</button>
+                    <button type="button" class="cad-btn" onclick="cadUndo()" title="ย้อนกลับ (Ctrl+Z หรือ U)">↩ Undo</button>
+                    <button type="button" class="cad-btn" onclick="cadRedo()" title="ทำซ้ำ (Ctrl+Y)">↪ Redo</button>
+                    <button type="button" class="cad-btn" onclick="polyCloseShape()" style="color:#34d399;" title="ปิดรูปทรงหลังคา (คีย์ลัด: C)">✓ ปิดรูปทรง</button>
+                    <button type="button" class="cad-btn" onclick="clearPoints()" style="color:#f87171;" title="ล้างจุดทั้งหมด (คีย์ลัด: E)">🗑️ ล้าง</button>
+                </div>
+            </div>
+
+            <!-- Right Actions -->
+            <div class="cad-header-right">
+                <button type="button" id="cadBtnTheme" class="cad-btn-icon" onclick="toggleCadTheme()" title="สลับธีม มืด (CAD Dark) / สว่าง">🌓</button>
+                <button type="button" class="cad-btn-apply" onclick="applyCadStudio()">✓ นำไปใช้งานและคำนวณ</button>
+                <button type="button" class="cad-btn-close" onclick="closeCadStudio()" title="ปิดหน้าต่าง (Esc)">✕</button>
+            </div>
+        </div>
+
+        <!-- CAD Canvas Workspace -->
+        <div class="cad-canvas-wrapper" id="cadCanvasWrapper">
+            <canvas id="cadStudioCanvas"></canvas>
+            
+            <!-- Collapsed Blueprint Underlay Pill Tag (แสดงเมื่อย่อเก็บแถบ) -->
+            <div id="cadFloatingBgPill" class="cad-bg-pill" style="display:none;" onclick="toggleCadFloatingBgPanel(true)" title="คลิกเพื่อเปิดแถบตั้งค่าแบบแปลน (เปลี่ยนหน้า PDF / ปรับความจาง / ล็อก)">
+                <span>🖼️ แบบแปลน</span>
+                <span style="font-size:0.68rem; color:#94a3b8; background:#27272a; padding:1px 6px; border-radius:10px; border:1px solid #3f3f46;">⚙️ ตั้งค่า ▾</span>
+            </div>
+
+            <!-- Floating Blueprint Underlay Control Panel (เมื่อมีภาพพื้นหลัง) -->
+            <div id="cadFloatingBgPanel" class="cad-bg-panel" style="display:none;">
+                <div id="cadFloatingBgTitle" class="cad-bg-panel-title">🖼️ แบบแปลน</div>
+                <button type="button" id="cadFloatingBtnCalibrate" class="cad-bg-btn" onclick="startCadCalibrateScale()" style="color:#f59e0b;" title="คลิก 2 จุดบนเส้นบอกขนาดในแบบแปลน เพื่อตั้งสเกลเมตรจริง 1:1 (กดอีกครั้งเพื่อปิด)">📏 Calibrate</button>
+                <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; color:#a1a1aa;">
+                    ความจาง: <input type="range" id="cadBgOpacitySlider" min="0.1" max="1" step="0.05" value="0.55" class="cad-bg-slider" oninput="setCadBgOpacity(this.value)">
+                </label>
+                <button type="button" id="cadBtnBgLock" class="cad-bg-btn active" onclick="toggleCadBgLock()" title="ล็อกไม่ให้ภาพขยับ (กดเพื่อปลดล็อกแล้วลากย้ายภาพ)">🔒 ล็อก</button>
+                <span id="cadPdfPageNav" style="display:none; align-items:center; gap:4px;">
+                    <button type="button" class="cad-bg-btn" onclick="changeCadPdfPage(-1)" title="หน้าก่อนหน้า">◀</button>
+                    <span style="font-size:0.75rem; color:#cbd5e1;">หน้า</span>
+                    <input type="number" id="cadPdfPageInput" min="1" max="1" value="1" style="width:42px; padding:2px 4px; font-size:0.75rem; text-align:center; background:#18181b; color:#38bdf8; border:1px solid #3f3f46; border-radius:4px; font-weight:700;" onchange="goToCadPdfPage(this.value)" title="พิมพ์เลขหน้าที่ต้องการแล้วกด Enter">
+                    <span id="cadPdfTotalPages" style="font-size:0.75rem; color:#a1a1aa; font-family:monospace;">/ 1</span>
+                    <button type="button" class="cad-bg-btn" onclick="changeCadPdfPage(1)" title="หน้าถัดไป">▶</button>
+                </span>
+                <button type="button" id="cadBtnBgVis" class="cad-bg-btn" onclick="toggleCadBgVisibility()" title="ซ่อน/แสดงภาพพื้นหลัง">👁️</button>
+                <button type="button" class="cad-bg-btn danger" onclick="removeCadBgImage()" title="ลบภาพพื้นหลัง">🗑️</button>
+                <button type="button" class="cad-bg-btn" onclick="toggleCadFloatingBgPanel(false)" style="background:#27272a; color:#a1a1aa; border-color:#52525b; margin-left:4px;" title="ซ่อนแถบควบคุมเพื่อเคลียร์หน้าจอ (คลิกป้าย 🖼️ ที่มุมจอเพื่อเปิดใหม่)">✕ ซ่อนแถบ</button>
+            </div>
+
+            <!-- Floating Live Status Toast inside CAD Studio -->
+            <div id="cadStudioToast" style="display:none; position:absolute; top:18px; left:50%; transform:translateX(-50%); background:rgba(15, 23, 42, 0.94); color:#38bdf8; border:1.5px solid #0284c7; padding:8px 20px; border-radius:24px; font-weight:700; font-size:0.88rem; box-shadow:0 8px 25px rgba(0,0,0,0.6); z-index:100; pointer-events:none; backdrop-filter:blur(6px); transition:opacity 0.25s ease;"></div>
+
+            <!-- Floating Direct Distance Entry Input -->
+            <div id="cadDynamicHud" class="cad-dynamic-hud" style="display:none;">
+                <span style="color:#38bdf8; font-weight:700;">ระยะ:</span>
+                <input type="number" id="cadDirectDistInput" step="0.01" min="0.01" placeholder="พิมพ์ระยะ เช่น 6.00" autocomplete="off">
+                <span class="cad-hud-unit">ม. [Enter]</span>
+            </div>
+
+            <!-- AutoCAD Interactive Dialog / Prompt Modal (Offset / Rotate / Scale / Mirror) -->
+            <div id="cadDialogOverlay" class="cad-dialog-overlay" style="display:none;" onclick="if(event.target===this) cadClosePrompt();">
+                <div class="cad-dialog-card">
+                    <div class="cad-dialog-header">
+                        <div id="cadDialogTitle" class="cad-dialog-title">📐 คำสั่ง AutoCAD</div>
+                        <button type="button" class="cad-btn-icon" onclick="cadClosePrompt()" style="width:24px; height:24px; font-size:0.8rem;">✕</button>
+                    </div>
+                    <div id="cadDialogDesc" style="font-size:0.82rem; color:#a1a1aa; margin-bottom:10px;">ระบุค่าที่ต้องการ</div>
+                    
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <input type="number" id="cadDialogInput" step="0.01" style="flex:1; background:#09090b; border:1.5px solid #0284c7; color:#38bdf8; padding:8px 12px; border-radius:6px; font-size:1.05rem; font-weight:700; font-family:monospace; outline:none;" onkeydown="if(event.key==='Enter') cadSubmitPrompt();">
+                        <span id="cadDialogUnit" style="font-size:0.9rem; color:#94a3b8; font-weight:600;">เมตร</span>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <div style="font-size:0.75rem; color:#71717a; margin-bottom:4px;">⚡ เลือกระยะด่วน:</div>
+                        <div id="cadDialogTags" class="cad-quick-tags"></div>
+                    </div>
+
+                    <div class="cad-dialog-actions">
+                        <button type="button" class="btn-small" onclick="cadClosePrompt()" style="background:#27272a; color:#cbd5e1; border:1px solid #3f3f46; padding:6px 14px; border-radius:6px; font-size:0.82rem;">ยกเลิก (Esc)</button>
+                        <button type="button" class="cad-btn-apply" onclick="cadSubmitPrompt()" style="padding:6px 18px; font-size:0.85rem;">✓ ตกลง (Enter)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAD Bottom Status Bar -->
+        <div class="cad-statusbar">
+            <div class="cad-status-cmd" id="cadCommandText">
+                <span class="cad-cmd-prompt">Command:</span>
+                <div class="cad-command-input-wrapper">
+                    <input type="text" id="cadCommandLineInput" class="cad-command-input" placeholder="พิมพ์ O, MI, RO, L, ZE, U..." autocomplete="off">
+                </div>
+                <span id="cadStatusAction" style="margin-left:8px; font-size:0.78rem;"></span>
+            </div>
+            <div class="cad-status-info">
+                <div class="cad-status-item" id="cadCoordDisplay">X: 0.000 m | Y: 0.000 m</div>
+                <div class="cad-status-item" id="cadDimDisplay">ความยาว: 0.00 m < 0.0°</div>
+                <div class="cad-status-item" id="cadPointsCount">0 จุด</div>
+                <div class="cad-status-item" style="color:#38bdf8;">[O: OFFSET] [MI: MIRROR] [RO: ROTATE] [ZE: EXTENTS] [U: UNDO]</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- โปรแกรมย้ำโค้ง (Awning) ถูกแยกเป็นไฟล์ modules/awning.html
+         โหลดเข้า iframe อัตโนมัติเมื่อเลือกประเภท "9. ย้ำโค้ง (Awning)" -->
+
+    <!-- ============================================================
+         JS MODULES — index.html เป็นตัวหลักศูนย์กลาง โหลดทุกโมดูลเข้าด้วยกัน
+         core/state.js        = สถานะกลาง + init/print
+         core/ui-controls.js  = ระบบเลือกประเภท/รุ่นแผ่น/พิกัด
+         draw/draw-*.js       = โมดูลวาดภาพ แยกตามทรง
+         calc/calc-*.js       = โมดูลคำนวณ แยกตามทรง
+         calc/calc-summary.js = สรุปผลรวม (สกรู/คอนเนคเตอร์/ราคา)
+         calc/calculate.js    = ศูนย์กลางเชื่อมการคำนวณทั้งหมด
+         ============================================================ -->
+    <script src="assets/js/core/state.js?v=2.6"></script>
+    <script src="assets/js/core/ui-controls.js?v=2.6"></script>
+
+    <script src="assets/js/draw/draw-helpers.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-roof.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-right-triangle.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-curve.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-triangle.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-trapezoid.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-irregular.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-parallelogram.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-polygon.js?v=2.6"></script>
+    <script src="assets/js/draw/draw-louver.js?v=2.6"></script>
+
+    <script src="assets/js/calc/calc-louver.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-slope.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-right-triangle.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-curve.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-crimp-curve.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-triangle.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-trapezoid.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-irregular.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-parallelogram.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-polygon.js?v=2.6"></script>
+    <script src="assets/js/core/poly-editor.js?v=2.6"></script>
+    <script src="assets/js/calc/calc-summary.js?v=2.6"></script>
+    <script src="assets/js/calc/calculate.js?v=2.6"></script>
+
+</body>
+</html>

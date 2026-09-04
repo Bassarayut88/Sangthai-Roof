@@ -1,9 +1,0 @@
-{
-  "name": "newgen-sangthai",
-  "version": "2.0.0",
-  "private": true,
-  "description": "เครื่องคำนวณเมทัลชีท แสงไทยเมทัลชีท (โครงสร้างโมดูลแยกไฟล์)",
-  "scripts": {
-    "dev": "node dev-server.js"
-  }
-}
